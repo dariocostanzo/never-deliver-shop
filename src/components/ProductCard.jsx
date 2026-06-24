@@ -62,7 +62,7 @@ export default function ProductCard({ product }) {
           </div>
           <button
             onClick={handleAdd}
-            className={`text-sm font-semibold px-3 py-1.5 rounded-full transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#ff9900]
+            className={`text-sm font-semibold px-3 py-1.5 rounded-full transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#ff9900] cursor-pointer
               ${added
                 ? 'bg-green-500 text-white scale-95'
                 : 'bg-[#ff9900] hover:bg-[#e88b00] text-[#131921]'
