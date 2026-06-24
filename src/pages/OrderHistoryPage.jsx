@@ -1,14 +1,34 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useLocale } from '../context/LocaleContext';
 import { OrdersPageSkeleton } from '../components/PageSkeletons';
 
+function buildTrackingSteps(order) {
+    const placed = order.date ? new Date(order.date) : new Date();
+    const shipped = new Date(placed.getTime() + 24 * 60 * 60 * 1000);
+    const outForDelivery = new Date(placed.getTime() + 2 * 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const fmt = (d) =>
+        d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
+        ', ' +
+        d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    return [
+        { label: 'Order placed', detail: fmt(placed), done: true },
+        { label: 'Shipped', detail: fmt(shipped), done: now >= shipped },
+        { label: 'Out for delivery', detail: fmt(outForDelivery), done: now >= outForDelivery },
+        { label: `Delivered${order.deliveryDate ? ' · ' + order.deliveryDate : ''}`, detail: 'Left in a parallel dimension', done: now >= outForDelivery },
+    ];
+}
+
 export default function OrderHistoryPage() {
-    const { getOrders } = useCart();
+    const { getOrders, addItem, updateQty, openDrawer } = useCart();
     const { formatCurrency } = useLocale();
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [trackingId, setTrackingId] = useState(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -18,6 +38,17 @@ export default function OrderHistoryPage() {
 
         return () => clearTimeout(timer);
     }, [getOrders]);
+
+    function handleBuyAgain(order) {
+        (order.items || []).forEach(item => {
+            addItem(item);
+            if (item.qty > 1) {
+                updateQty(item.id, item.qty);
+            }
+        });
+        openDrawer();
+        navigate('/');
+    }
 
     return (
         <div className="min-h-screen bg-[#eaeded]">
@@ -88,13 +119,42 @@ export default function OrderHistoryPage() {
 
                                 {/* Actions */}
                                 <div className="px-4 pb-3 flex gap-2">
-                                    <Link to="/" className="text-xs border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 transition-colors">
+                                    <button
+                                        type="button"
+                                        onClick={() => handleBuyAgain(order)}
+                                        className="text-xs border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 transition-colors"
+                                    >
                                         Buy it again
-                                    </Link>
-                                    <button className="text-xs border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 transition-colors">
-                                        Track package
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTrackingId(prev => (prev === order.id ? null : order.id))}
+                                        aria-expanded={trackingId === order.id}
+                                        className="text-xs border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 text-gray-700 transition-colors"
+                                    >
+                                        {trackingId === order.id ? 'Hide tracking' : 'Track package'}
                                     </button>
                                 </div>
+
+                                {/* Tracking timeline */}
+                                {trackingId === order.id && (
+                                    <div className="px-4 pb-4 pt-1 border-t bg-gray-50">
+                                        <ol className="mt-3 space-y-3">
+                                            {buildTrackingSteps(order).map((s, i) => (
+                                                <li key={i} className="flex gap-3 items-start">
+                                                    <span
+                                                        className={`mt-0.5 flex-shrink-0 h-4 w-4 rounded-full border-2 ${s.done ? 'bg-green-500 border-green-500' : 'bg-white border-gray-300'}`}
+                                                        aria-hidden="true"
+                                                    />
+                                                    <div className="min-w-0">
+                                                        <p className={`text-xs font-semibold ${s.done ? 'text-gray-900' : 'text-gray-500'}`}>{s.label}</p>
+                                                        <p className="text-[11px] text-gray-500">{s.detail}</p>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
