@@ -13,7 +13,8 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
 ## Features
 
 - Catalog experience:
-  - Aggregated product catalog from multiple public APIs
+  - **613+ products** aggregated from 4 public APIs (DummyJSON, Escuela JS, Makeup, Fakestore)
+  - 20+ product categories (electronics, fashion, beauty, jewelry, automotive, groceries, etc.)
   - Category filtering
   - Product details with related products
   - Cart drawer and checkout flow

@@ -1,6 +1,7 @@
 const DUMMYJSON_BASE = 'https://dummyjson.com';
 const ESCUELA_BASE = 'https://api.escuelajs.co/api/v1';
 const MAKEUP_BASE = 'https://makeup-api.herokuapp.com/api/v1';
+const FAKESTORE_BASE = 'https://fakestoreapi.com';
 
 let catalogCache = null;
 
@@ -74,6 +75,23 @@ function normalizeMakeupProduct(raw) {
     };
 }
 
+function normalizeFakestoreProduct(raw) {
+    return {
+        id: `fs-${raw.id}`,
+        title: raw.title,
+        description: raw.description || '',
+        category: raw.category || 'other',
+        price: asNumber(raw.price, 0),
+        image: raw.image || '',
+        rating: {
+            rate: asNumber(raw.rating?.rate, 3.5),
+            count: asNumber(raw.rating?.count, 50),
+        },
+        stock: Math.round(seededNumber(raw.id, 5, 100)),
+        brand: raw.category || 'FakeStore',
+    };
+}
+
 function dedupeProducts(products) {
     const seen = new Set();
     return products.filter(product => {
@@ -101,12 +119,23 @@ async function fetchMakeupProducts() {
         .map(normalizeMakeupProduct);
 }
 
+async function fetchFakestoreProducts() {
+    try {
+        const res = await fetch(`${FAKESTORE_BASE}/products`);
+        if (!res.ok) throw new Error('Fakestore failed');
+        const data = await res.json();
+        return (Array.isArray(data) ? data : []).map(normalizeFakestoreProduct);
+    } catch {
+        return [];
+    }
+}
+
 export async function fetchCatalogProducts(limit = 700) {
     if (catalogCache?.length) {
         return catalogCache.slice(0, limit);
     }
 
-    const [dummyResult, escuelaResult, makeupProducts] = await Promise.all([
+    const [dummyResult, escuelaResult, makeupProducts, fakestoreProducts] = await Promise.all([
         fetch(`${DUMMYJSON_BASE}/products?limit=194`)
             .then(r => (r.ok ? r.json() : { products: [] }))
             .then(data => (data.products || []).map(normalizeDummyProduct))
@@ -116,9 +145,10 @@ export async function fetchCatalogProducts(limit = 700) {
             .then(data => (Array.isArray(data) ? data : []).map(normalizeEscuelaProduct))
             .catch(() => []),
         fetchMakeupProducts().catch(() => []),
+        fetchFakestoreProducts().catch(() => []),
     ]);
 
-    const combined = dedupeProducts([...dummyResult, ...escuelaResult, ...makeupProducts]);
+    const combined = dedupeProducts([...dummyResult, ...escuelaResult, ...makeupProducts, ...fakestoreProducts]);
     if (combined.length === 0) {
         throw new Error('Failed to fetch products');
     }
@@ -157,6 +187,13 @@ export async function fetchProductById(id) {
         if (!res.ok) throw new Error('Failed to fetch product');
         const data = await res.json();
         return normalizeEscuelaProduct(data);
+    }
+
+    if (source === 'fs') {
+        const res = await fetch(`${FAKESTORE_BASE}/products/${rawId}`);
+        if (!res.ok) throw new Error('Failed to fetch product');
+        const data = await res.json();
+        return normalizeFakestoreProduct(data);
     }
 
     if (source === 'mk') {
