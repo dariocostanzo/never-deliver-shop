@@ -33,6 +33,9 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
   - Improved color contrast for text and metadata
   - Keyboard-visible focus styles
   - Better placeholder/text visibility in search input
+  - Improved mobile header layout with search-first wrapping on small screens
+  - Checkout step indicator now remains usable on very narrow screens
+  - Horizontal overflow prevention to avoid accidental side-scrolling on mobile
   - Automatic product image fallback when third-party image hosts are blocked by region/browser policy
   - Skeleton loading states for key pages
   - Interactive review count opening a fake reviews panel

@@ -89,11 +89,11 @@ export default function Header({ onSearch, searchValue }) {
         <>
             <header className="bg-[#131921] text-white sticky top-0 z-40 shadow-lg">
                 {/* Top bar */}
-                <div className="flex items-center gap-3 px-4 py-2 max-w-screen-xl mx-auto">
+                <div className="flex flex-wrap md:flex-nowrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 max-w-screen-xl mx-auto">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-1 shrink-0">
-                        <span className="text-2xl font-extrabold tracking-tight text-[#ff9900]">never</span>
-                        <span className="text-2xl font-extrabold tracking-tight text-white">deliver</span>
+                    <Link to="/" className="flex items-center gap-1 shrink-0 min-w-0">
+                        <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#ff9900]">never</span>
+                        <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-white">deliver</span>
                     </Link>
 
                     {/* Deliver badge */}
@@ -103,7 +103,7 @@ export default function Header({ onSearch, searchValue }) {
                     </div>
 
                     {/* Search bar */}
-                    <div ref={searchWrapRef} className="flex-1 relative">
+                    <div ref={searchWrapRef} className="order-3 basis-full md:order-none md:basis-auto md:flex-1 relative">
                         <div className="flex rounded overflow-hidden">
                             <input
                                 type="text"
@@ -129,7 +129,7 @@ export default function Header({ onSearch, searchValue }) {
                                         setSuggestionsOpen(false);
                                     }
                                 }}
-                                className="nd-search-input flex-1 bg-white px-3 py-2 text-slate-900 caret-slate-900 text-sm placeholder:text-slate-700"
+                                className="nd-search-input flex-1 bg-white px-3 py-2 text-slate-900 caret-slate-900 text-sm placeholder:text-slate-700 min-w-0"
                                 aria-label={t('searchLabel')}
                                 aria-expanded={suggestionsOpen}
                                 role="combobox"
@@ -139,7 +139,7 @@ export default function Header({ onSearch, searchValue }) {
                                 spellCheck="false"
                             />
                             <button
-                                className="bg-[#ff9900] px-4 hover:bg-[#e88b00] transition-colors"
+                                className="bg-[#ff9900] px-3 sm:px-4 hover:bg-[#e88b00] transition-colors"
                                 onClick={() => navigate('/')}
                                 aria-label={t('searchButton')}
                             >
@@ -225,7 +225,7 @@ export default function Header({ onSearch, searchValue }) {
                     {/* Cart button */}
                     <button
                         onClick={handleCartClick}
-                        className="relative flex items-end gap-1 text-white hover:text-[#ff9900] transition-colors shrink-0"
+                        className="relative flex items-end gap-1 text-white hover:text-[#ff9900] transition-colors shrink-0 ml-auto md:ml-0"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.5 6h13M7 13L5.4 5M10 21a1 1 0 100-2 1 1 0 000 2zm8 0a1 1 0 100-2 1 1 0 000 2z" />
@@ -243,10 +243,10 @@ export default function Header({ onSearch, searchValue }) {
                 </div>
 
                 {/* Category nav */}
-                <div className="bg-[#232f3e] px-4 py-1 overflow-x-auto">
+                <div className="bg-[#232f3e] px-3 sm:px-4 py-1 overflow-x-auto">
                     <div className="flex items-center gap-2 text-xs text-gray-100 max-w-screen-xl mx-auto mb-1 md:hidden">
                         <label className="flex items-center gap-1">
-                            <span>{t('country')}</span>
+                            <span className="sr-only">{t('country')}</span>
                             <select
                                 value={country}
                                 onChange={e => setCountry(e.target.value)}
@@ -261,7 +261,7 @@ export default function Header({ onSearch, searchValue }) {
                             </select>
                         </label>
                         <label className="flex items-center gap-1">
-                            <span>{t('currency')}</span>
+                            <span className="sr-only">{t('currency')}</span>
                             <select
                                 value={currency}
                                 onChange={e => setCurrency(e.target.value)}
@@ -276,7 +276,7 @@ export default function Header({ onSearch, searchValue }) {
                             </select>
                         </label>
                         <label className="flex items-center gap-1">
-                            <span>{t('language')}</span>
+                            <span className="sr-only">{t('language')}</span>
                             <select
                                 value={language}
                                 onChange={e => setLanguage(e.target.value)}

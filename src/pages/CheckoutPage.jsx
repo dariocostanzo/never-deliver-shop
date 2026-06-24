@@ -314,9 +314,9 @@ export default function CheckoutPage() {
                 <div className="flex-1">
                     {/* Step indicator */}
                     {step < 3 && (
-                        <div className="flex items-center mb-6 gap-1">
+                        <div className="flex items-center mb-6 gap-1 overflow-x-auto pb-1">
                             {STEPS.slice(0, 3).map((s, i) => (
-                                <div key={s} className="flex items-center">
+                                <div key={s} className="flex items-center shrink-0">
                                     <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold
                     ${i < step ? 'bg-green-500 text-white' : i === step ? 'bg-[#ff9900] text-[#131921]' : 'bg-gray-300 text-gray-600'}`}>
                                         {i < step ? '✓' : i + 1}
