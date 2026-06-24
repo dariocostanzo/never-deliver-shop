@@ -13,33 +13,33 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
 ## Features
 
 - Catalog experience:
- 	- Aggregated product catalog from multiple public APIs
- 	- Category filtering
- 	- Product details with related products
- 	- Cart drawer and checkout flow
+  - Aggregated product catalog from multiple public APIs
+  - Category filtering
+  - Product details with related products
+  - Cart drawer and checkout flow
 
 - Search and discovery:
- 	- Header search with live suggestions dropdown
- 	- Keyboard navigation in suggestions
- 	- Search by title, category, brand, and description
+  - Header search with live suggestions dropdown
+  - Keyboard navigation in suggestions
+  - Search by title, category, brand, and description
 
 - Localization and regionalization:
- 	- Country selector (UK, Italy, US, Germany)
- 	- Currency selector (GBP, EUR, USD)
- 	- Language selector with flags (English, Italian, German)
+  - Country selector (UK, Italy, US, Germany)
+  - Currency selector (GBP, EUR, USD)
+  - Language selector with flags (English, Italian, German)
 
 - Accessibility and UX:
- 	- Improved color contrast for text and metadata
- 	- Keyboard-visible focus styles
- 	- Better placeholder/text visibility in search input
- 	- Skeleton loading states for key pages
- 	- Interactive review count opening a fake reviews panel
+  - Improved color contrast for text and metadata
+  - Keyboard-visible focus styles
+  - Better placeholder/text visibility in search input
+  - Skeleton loading states for key pages
+  - Interactive review count opening a fake reviews panel
 
 - Shopping flow:
- 	- Add/remove/update cart quantity
- 	- Fake checkout with prefilled profile data
- 	- Simulated payment progress
- 	- Order history page
+  - Add/remove/update cart quantity
+  - Fake checkout with prefilled profile data
+  - Simulated payment progress
+  - Order history page
 
 ## Screenshots and Demo
 
