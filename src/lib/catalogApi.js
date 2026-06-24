@@ -131,33 +131,6 @@ async function fetchFakestoreProducts() {
     }
 }
 
-export async function fetchCatalogProducts(limit = 700) {
-    if (catalogCache?.length) {
-        return catalogCache.slice(0, limit);
-    }
-
-    const [dummyResult, escuelaResult, makeupProducts, fakestoreProducts] = await Promise.all([
-        fetch(`${DUMMYJSON_BASE}/products?limit=194`)
-            .then(r => (r.ok ? r.json() : { products: [] }))
-            .then(data => (data.products || []).map(normalizeDummyProduct))
-            .catch(() => []),
-        fetch(`${ESCUELA_BASE}/products?offset=0&limit=350`)
-            .then(r => (r.ok ? r.json() : []))
-            .then(data => (Array.isArray(data) ? data : []).map(normalizeEscuelaProduct))
-            .catch(() => []),
-        fetchMakeupProducts().catch(() => []),
-        fetchFakestoreProducts().catch(() => []),
-    ]);
-
-    const combined = dedupeProducts([...dummyResult, ...escuelaResult, ...makeupProducts, ...fakestoreProducts]);
-    if (combined.length === 0) {
-        throw new Error('Failed to fetch products');
-    }
-
-    catalogCache = combined;
-    return catalogCache.slice(0, limit);
-}
-
 // Lazy-load catalog (build it once, use for pagination)
 async function initializeCatalog() {
     if (catalogCache?.length) {
@@ -204,6 +177,12 @@ export async function fetchCatalogPage(page = 1, pageSize = 20) {
         pageSize,
         totalPages: Math.ceil(catalog.length / pageSize),
     };
+}
+
+// Legacy function for backward compatibility - returns products from cache
+export async function fetchCatalogProducts(limit = 700) {
+    const catalog = await initializeCatalog();
+    return catalog.slice(0, limit);
 }
 
 export async function searchCatalogProducts(query, limit = 8) {

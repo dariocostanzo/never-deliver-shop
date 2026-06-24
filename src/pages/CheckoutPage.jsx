@@ -55,6 +55,7 @@ function getInitialCheckoutForm(countryCode) {
             city: 'Milano',
             state: 'MI',
             zip: '20121',
+            deliverySpeed: 'standard',
             cardNumber: '4242 4242 4242 4242',
             expiry: '12/26',
             cvv: '123',
@@ -68,6 +69,7 @@ function getInitialCheckoutForm(countryCode) {
         city: 'London',
         state: 'Greater London',
         zip: 'NW1 6XE',
+        deliverySpeed: 'standard',
         cardNumber: '4242 4242 4242 4242',
         expiry: '12/26',
         cvv: '123',
@@ -95,8 +97,46 @@ function DeliveryStep({ form, setForm, onNext, countryCode }) {
                     />
                 </div>
             ))}
+
+            <div className="pt-2">
+                <h3 className="text-sm font-medium text-gray-800 mb-2">Delivery Speed</h3>
+                <div className="space-y-2">
+                    <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-gray-50 transition-colors" style={{ borderColor: form.deliverySpeed === 'standard' ? '#ff9900' : undefined, backgroundColor: form.deliverySpeed === 'standard' ? '#fff8f0' : undefined }}>
+                        <input
+                            type="radio"
+                            name="deliverySpeed"
+                            value="standard"
+                            checked={form.deliverySpeed === 'standard'}
+                            onChange={e => setForm(prev => ({ ...prev, deliverySpeed: e.target.value }))}
+                            className="accent-[#ff9900]"
+                        />
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">Standard Delivery</p>
+                            <p className="text-xs text-gray-600">2-3 business days</p>
+                        </div>
+                        <p className="text-sm font-bold text-green-600">FREE</p>
+                    </label>
+
+                    <label className="flex items-center gap-3 p-3 border border-gray-300 rounded cursor-pointer hover:bg-gray-50 transition-colors" style={{ borderColor: form.deliverySpeed === 'express' ? '#ff9900' : undefined, backgroundColor: form.deliverySpeed === 'express' ? '#fff8f0' : undefined }}>
+                        <input
+                            type="radio"
+                            name="deliverySpeed"
+                            value="express"
+                            checked={form.deliverySpeed === 'express'}
+                            onChange={e => setForm(prev => ({ ...prev, deliverySpeed: e.target.value }))}
+                            className="accent-[#ff9900]"
+                        />
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">Next Day Delivery</p>
+                            <p className="text-xs text-gray-600">1 business day</p>
+                        </div>
+                        <p className="text-sm font-bold text-gray-900">+$9.99</p>
+                    </label>
+                </div>
+            </div>
+
             <button
-                disabled={!isValid}
+                disabled={!isValid || !form.deliverySpeed}
                 onClick={onNext}
                 className="w-full bg-[#ff9900] hover:bg-[#e88b00] disabled:opacity-50 text-[#131921] font-bold py-2.5 rounded-full transition-colors"
             >
@@ -262,7 +302,9 @@ export default function CheckoutPage() {
         setStep(3);
     }
 
-    const shipping = subtotal > 25 ? 0 : 4.99;
+    const standardShipping = subtotal > 25 ? 0 : 4.99;
+    const expressUpcharge = form.deliverySpeed === 'express' ? 9.99 : 0;
+    const shipping = standardShipping + expressUpcharge;
     const total = subtotal + shipping;
 
     return (
@@ -315,12 +357,24 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between text-gray-700">
                                     <span>Items ({totalItems}):</span><span>{formatCurrency(subtotal)}</span>
                                 </div>
-                                <div className="flex justify-between text-gray-700">
-                                    <span>Shipping:</span>
-                                    <span className={shipping === 0 ? 'text-green-600 font-semibold' : ''}>
-                                        {shipping === 0 ? 'FREE' : formatCurrency(shipping)}
-                                    </span>
-                                </div>
+                                {standardShipping > 0 && (
+                                    <div className="flex justify-between text-gray-700">
+                                        <span>Shipping:</span>
+                                        <span>{formatCurrency(standardShipping)}</span>
+                                    </div>
+                                )}
+                                {standardShipping === 0 && (
+                                    <div className="flex justify-between text-gray-700">
+                                        <span>Shipping:</span>
+                                        <span className="text-green-600 font-semibold">FREE</span>
+                                    </div>
+                                )}
+                                {expressUpcharge > 0 && (
+                                    <div className="flex justify-between text-gray-700">
+                                        <span>Next Day Delivery:</span>
+                                        <span>+{formatCurrency(expressUpcharge)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between font-bold text-gray-900 border-t pt-1">
                                     <span>Order total:</span><span>{formatCurrency(total)}</span>
                                 </div>
@@ -381,6 +435,10 @@ function ConfirmationStep({ orderId, deliveryDate, total, form, formatCurrency }
                 <div className="flex justify-between">
                     <span className="text-gray-600">Estimated delivery:</span>
                     <span className="font-bold text-green-700">{deliveryDate}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-gray-600">Delivery speed:</span>
+                    <span className="font-semibold text-gray-900">{form.deliverySpeed === 'express' ? 'Next Day Delivery' : 'Standard Delivery'}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-600">Order total:</span>

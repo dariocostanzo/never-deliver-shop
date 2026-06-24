@@ -157,8 +157,8 @@ export default function HomePage({ searchValue }) {
 
                 {error && (
                     <div className="text-center py-20 text-red-600">
-                        <p className="text-xl font-bold">Oops! Couldn't load products.</p>
-                        <p className="text-sm mt-1">{error}</p>
+                        <p className="text-xl font-bold">Oops! Something went wrong.</p>
+                        <p className="text-sm mt-1">We couldn't load the products right now. Please try again.</p>
                         <button
                             type="button"
                             onClick={loadProducts}
