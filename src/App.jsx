@@ -1,0 +1,41 @@
+import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { CartProvider } from './context/CartContext'
+import { LocaleProvider } from './context/LocaleContext'
+import { LanguageProvider } from './context/LanguageContext'
+import Header from './components/Header'
+import HomePage from './pages/HomePage'
+import ProductPage from './pages/ProductPage'
+import CheckoutPage from './pages/CheckoutPage'
+import OrderHistoryPage from './pages/OrderHistoryPage'
+
+function App() {
+  const [searchValue, setSearchValue] = useState('')
+
+  return (
+    <LanguageProvider>
+      <LocaleProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <div className="min-h-screen flex flex-col bg-[#eaeded]">
+              <Header onSearch={setSearchValue} searchValue={searchValue} />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/" element={<HomePage searchValue={searchValue} />} />
+                  <Route path="/product/:id" element={<ProductPage />} />
+                  <Route path="/checkout" element={<CheckoutPage />} />
+                  <Route path="/orders" element={<OrderHistoryPage />} />
+                </Routes>
+              </main>
+              <footer className="bg-[#131921] text-gray-300 text-xs text-center py-4">
+                © 2026 NeverDeliver · All transactions are fake · No real charges · Just dopamine
+              </footer>
+            </div>
+          </BrowserRouter>
+        </CartProvider>
+      </LocaleProvider>
+    </LanguageProvider>
+  )
+}
+
+export default App
