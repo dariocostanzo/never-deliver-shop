@@ -43,24 +43,6 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
   - Simulated payment progress
   - Order history page
 
-## Screenshots and Demo
-
-Add your visuals under docs/media/ and replace the placeholder paths below.
-
-### Home
-
-![Home page screenshot](docs/media/home.png)
-
-### Product Detail
-
-![Product detail screenshot](docs/media/product-detail.png)
-
-### Checkout
-
-![Checkout screenshot](docs/media/checkout.png)
-
-Tip: Keep screenshot widths around 1400px and optimize images before commit to keep the repository light.
-
 ## Quality Standards
 
 - Documentation hygiene:
