@@ -4,6 +4,7 @@ const MAKEUP_BASE = 'https://makeup-api.herokuapp.com/api/v1';
 const FAKESTORE_BASE = 'https://fakestoreapi.com';
 
 let catalogCache = null;
+let catalogInitPromise = null;
 
 function asNumber(value, fallback = 0) {
     const n = Number(value);
@@ -155,6 +156,54 @@ export async function fetchCatalogProducts(limit = 700) {
 
     catalogCache = combined;
     return catalogCache.slice(0, limit);
+}
+
+// Lazy-load catalog (build it once, use for pagination)
+async function initializeCatalog() {
+    if (catalogCache?.length) {
+        return catalogCache;
+    }
+
+    if (!catalogInitPromise) {
+        catalogInitPromise = (async () => {
+            const [dummyResult, escuelaResult, makeupProducts, fakestoreProducts] = await Promise.all([
+                fetch(`${DUMMYJSON_BASE}/products?limit=194`)
+                    .then(r => (r.ok ? r.json() : { products: [] }))
+                    .then(data => (data.products || []).map(normalizeDummyProduct))
+                    .catch(() => []),
+                fetch(`${ESCUELA_BASE}/products?offset=0&limit=350`)
+                    .then(r => (r.ok ? r.json() : []))
+                    .then(data => (Array.isArray(data) ? data : []).map(normalizeEscuelaProduct))
+                    .catch(() => []),
+                fetchMakeupProducts().catch(() => []),
+                fetchFakestoreProducts().catch(() => []),
+            ]);
+
+            const combined = dedupeProducts([...dummyResult, ...escuelaResult, ...makeupProducts, ...fakestoreProducts]);
+            if (combined.length === 0) {
+                throw new Error('Failed to fetch products');
+            }
+
+            catalogCache = combined;
+            return catalogCache;
+        })();
+    }
+
+    return catalogInitPromise;
+}
+
+// Fetch paginated products (lazy-loaded)
+export async function fetchCatalogPage(page = 1, pageSize = 20) {
+    const catalog = await initializeCatalog();
+    const startIdx = (page - 1) * pageSize;
+    const endIdx = startIdx + pageSize;
+    return {
+        products: catalog.slice(startIdx, endIdx),
+        total: catalog.length,
+        page,
+        pageSize,
+        totalPages: Math.ceil(catalog.length / pageSize),
+    };
 }
 
 export async function searchCatalogProducts(query, limit = 8) {

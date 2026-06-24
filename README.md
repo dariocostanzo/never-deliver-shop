@@ -96,6 +96,19 @@ npm run build
 npm run preview
 ```
 
+### 5. Run tests
+
+```bash
+npm test
+```
+
+## Performance & Optimization
+
+- **Lazy-loaded catalog**: Uses `fetchCatalogPage()` for efficient pagination instead of loading all 600+ products at once
+- **Intelligent caching**: Full catalog is built once on first request and cached for instant subsequent loads
+- **Client-side pagination**: Filter, sort, and paginate products in-memory for instant interactions (after initial load)
+- **API aggregation**: Combines 4 public APIs (DummyJSON, Escuela JS, Makeup, Fakestore) with deduplication
+
 ## Privacy & Security
 
 **Your data is safe.** This is a 100% client-side application:
@@ -118,7 +131,7 @@ npm run preview
 - Add server-side pagination and query caching
 - Add authentication and persistent user profiles
 - Add automated accessibility checks in CI (axe/lighthouse)
-- Add unit + integration tests for cart, checkout, and search logic
+- Expand unit tests for cart, checkout, and search logic
 
 ## License
 

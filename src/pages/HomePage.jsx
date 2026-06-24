@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { HomeGridSkeleton } from '../components/PageSkeletons';
-import { fetchCatalogProducts } from '../lib/catalogApi';
+import { fetchCatalogPage } from '../lib/catalogApi';
 import { useLanguage } from '../context/LanguageContext';
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -28,8 +28,13 @@ export default function HomePage({ searchValue }) {
         setLoading(true);
         setError(null);
         try {
-            const data = await fetchCatalogProducts(700);
-            setProducts(data || []);
+            // Lazy load: fetch first page quickly, then full catalog in background
+            const pageData = await fetchCatalogPage(1, DEFAULT_PAGE_SIZE);
+            setProducts(pageData.products);
+
+            // Load full catalog for filtering/searching
+            const fullData = await fetchCatalogPage(1, pageData.total);
+            setProducts(fullData.products);
         } catch (err) {
             setError(err.message || 'Failed to fetch products');
         } finally {
