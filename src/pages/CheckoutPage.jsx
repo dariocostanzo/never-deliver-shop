@@ -375,7 +375,7 @@ function ConfirmationStep({ orderId, deliveryDate, total, form, formatCurrency }
                 <div className="flex justify-between">
                     <span className="text-gray-600">Delivering to:</span>
                     <span className="font-semibold text-gray-900 text-right max-w-[55%]">
-                        {form.fullName}, {form.city}
+                        {form.fullName}, {form.address}, {form.city}, {form.state} {form.zip}
                     </span>
                 </div>
                 <div className="flex justify-between">

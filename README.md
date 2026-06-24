@@ -95,6 +95,16 @@ npm run build
 npm run preview
 ```
 
+## Privacy & Security
+
+**Your data is safe.** This is a 100% client-side application:
+
+- No backend server stores your data
+- All data stays in your browser's local storage
+- Checkout data is never sent anywhere — it's purely simulated
+- We only fetch product catalog data from public APIs (no personal data leaves your device)
+- You can safely enter any information without privacy concerns
+
 ## Notes
 
 - Product, rating, and review content are demo or fake data.
