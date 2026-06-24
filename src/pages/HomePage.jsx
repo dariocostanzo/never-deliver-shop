@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { HomeGridSkeleton } from '../components/PageSkeletons';
 import { fetchCatalogProducts } from '../lib/catalogApi';
 import { useLanguage } from '../context/LanguageContext';
 
-const PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 20;
 
 export default function HomePage({ searchValue }) {
     const { t } = useLanguage();
@@ -13,23 +13,28 @@ export default function HomePage({ searchValue }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+    const [sortBy, setSortBy] = useState('relevance');
     const [searchParams] = useSearchParams();
 
     const categoryParam = searchParams.get('category') || 'All';
 
-    useEffect(() => {
+    const loadProducts = useCallback(async () => {
         setLoading(true);
         setError(null);
-        fetchCatalogProducts(200)
-            .then(data => {
-                setProducts(data || []);
-                setLoading(false);
-            })
-            .catch(err => {
-                setError(err.message);
-                setLoading(false);
-            });
+        try {
+            const data = await fetchCatalogProducts(700);
+            setProducts(data || []);
+        } catch (err) {
+            setError(err.message || 'Failed to fetch products');
+        } finally {
+            setLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        loadProducts();
+    }, [loadProducts]);
 
     const categories = ['All', ...Array.from(new Set(products.map(p => p.category))).sort((a, b) => a.localeCompare(b))];
 
@@ -46,14 +51,31 @@ export default function HomePage({ searchValue }) {
         )
         : inCategory;
 
+    const sorted = [...filtered].sort((a, b) => {
+        if (sortBy === 'price-asc') return a.price - b.price;
+        if (sortBy === 'price-desc') return b.price - a.price;
+        if (sortBy === 'rating-desc') return (b.rating?.rate || 0) - (a.rating?.rate || 0);
+        if (sortBy === 'newest') return String(b.id).localeCompare(String(a.id));
+        return 0;
+    });
+
     useEffect(() => {
         setPage(1);
-    }, [categoryParam, searchValue]);
+    }, [categoryParam, searchValue, sortBy, pageSize]);
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
     const safePage = Math.min(page, totalPages);
-    const pageStart = (safePage - 1) * PAGE_SIZE;
-    const pagedProducts = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+    const pageStart = (safePage - 1) * pageSize;
+    const pagedProducts = sorted.slice(pageStart, pageStart + pageSize);
+
+    const paginationWindowSize = 7;
+    let startPage = Math.max(1, safePage - Math.floor(paginationWindowSize / 2));
+    let endPage = Math.min(totalPages, startPage + paginationWindowSize - 1);
+    if (endPage - startPage + 1 < paginationWindowSize) {
+        startPage = Math.max(1, endPage - paginationWindowSize + 1);
+    }
+
+    const pageNumbers = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
 
     return (
         <div className="min-h-screen bg-[#eaeded]">
@@ -95,21 +117,59 @@ export default function HomePage({ searchValue }) {
                     <div className="text-center py-20 text-red-600">
                         <p className="text-xl font-bold">Oops! Couldn't load products.</p>
                         <p className="text-sm mt-1">{error}</p>
+                        <button
+                            type="button"
+                            onClick={loadProducts}
+                            className="mt-4 px-4 py-2 rounded bg-[#131921] text-white text-sm font-semibold hover:bg-[#232f3e]"
+                        >
+                            {t('retry')}
+                        </button>
                     </div>
                 )}
 
                 {!loading && !error && (
                     <>
-                        <p className="text-sm text-gray-800 mb-3">
-                            {filtered.length} {filtered.length !== 1 ? t('results') : t('result')}{searchValue ? ` for "${searchValue}"` : ''}
-                            {filtered.length > 0 ? ` · ${t('page')} ${safePage} ${t('of')} ${totalPages}` : ''}
-                        </p>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                            <p className="text-sm text-gray-800" aria-live="polite">
+                                {sorted.length} {sorted.length !== 1 ? t('results') : t('result')}{searchValue ? ` for "${searchValue}"` : ''}
+                                {sorted.length > 0 ? ` · ${t('page')} ${safePage} ${t('of')} ${totalPages}` : ''}
+                            </p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <label className="text-xs text-gray-800">
+                                    <span className="mr-1">{t('sortBy')}</span>
+                                    <select
+                                        value={sortBy}
+                                        onChange={e => setSortBy(e.target.value)}
+                                        className="border border-gray-400 bg-white rounded px-2 py-1 text-xs"
+                                    >
+                                        <option value="relevance">{t('relevance')}</option>
+                                        <option value="price-asc">{t('priceLowHigh')}</option>
+                                        <option value="price-desc">{t('priceHighLow')}</option>
+                                        <option value="rating-desc">{t('ratingHighLow')}</option>
+                                        <option value="newest">{t('newest')}</option>
+                                    </select>
+                                </label>
+
+                                <label className="text-xs text-gray-800">
+                                    <span className="mr-1">{t('perPage')}</span>
+                                    <select
+                                        value={pageSize}
+                                        onChange={e => setPageSize(Number(e.target.value))}
+                                        className="border border-gray-400 bg-white rounded px-2 py-1 text-xs"
+                                    >
+                                        {[12, 20, 32, 48].map(size => (
+                                            <option key={size} value={size}>{size}</option>
+                                        ))}
+                                    </select>
+                                </label>
+                            </div>
+                        </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                             {pagedProducts.map(product => (
                                 <ProductCard key={product.id} product={product} />
                             ))}
                         </div>
-                        {filtered.length > PAGE_SIZE && (
+                        {sorted.length > pageSize && (
                             <div className="mt-6 flex items-center justify-center gap-2 flex-wrap">
                                 <button
                                     type="button"
@@ -120,8 +180,9 @@ export default function HomePage({ searchValue }) {
                                     {t('previous')}
                                 </button>
 
-                                {Array.from({ length: totalPages }).slice(0, 7).map((_, idx) => {
-                                    const pageNum = idx + 1;
+                                {startPage > 1 && <span className="px-1 text-gray-700">...</span>}
+
+                                {pageNumbers.map(pageNum => {
                                     return (
                                         <button
                                             key={pageNum}
@@ -134,7 +195,7 @@ export default function HomePage({ searchValue }) {
                                     );
                                 })}
 
-                                {totalPages > 7 && <span className="px-1 text-gray-700">...</span>}
+                                {endPage < totalPages && <span className="px-1 text-gray-700">...</span>}
 
                                 <button
                                     type="button"
@@ -146,7 +207,7 @@ export default function HomePage({ searchValue }) {
                                 </button>
                             </div>
                         )}
-                        {filtered.length === 0 && (
+                        {sorted.length === 0 && (
                             <div className="text-center py-20 text-gray-700">
                                 <p className="text-xl font-bold text-gray-900">No results found</p>
                                 <p className="text-sm mt-1">Try a different search or category</p>

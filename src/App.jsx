@@ -18,8 +18,11 @@ function App() {
         <CartProvider>
           <BrowserRouter>
             <div className="min-h-screen flex flex-col bg-[#eaeded]">
+              <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-white text-black px-3 py-2 rounded shadow z-50">
+                Skip to main content
+              </a>
               <Header onSearch={setSearchValue} searchValue={searchValue} />
-              <main className="flex-1">
+              <main id="main-content" className="flex-1">
                 <Routes>
                   <Route path="/" element={<HomePage searchValue={searchValue} />} />
                   <Route path="/product/:id" element={<ProductPage />} />

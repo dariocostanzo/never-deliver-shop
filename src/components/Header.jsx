@@ -68,6 +68,7 @@ export default function Header({ onSearch, searchValue }) {
     function handleSuggestionPick(product) {
         onSearch(product.title);
         setSuggestionsOpen(false);
+        setActiveIndex(-1);
         navigate(`/product/${product.id}`);
     }
 
@@ -118,6 +119,9 @@ export default function Header({ onSearch, searchValue }) {
                                 className="nd-search-input flex-1 bg-white px-3 py-2 text-slate-900 caret-slate-900 text-sm placeholder:text-slate-700"
                                 aria-label={t('searchLabel')}
                                 aria-expanded={suggestionsOpen}
+                                role="combobox"
+                                aria-controls="search-suggestions-listbox"
+                                aria-activedescendant={activeIndex >= 0 ? `search-suggestion-${activeIndex}` : undefined}
                                 aria-autocomplete="list"
                                 spellCheck="false"
                             />
@@ -132,9 +136,9 @@ export default function Header({ onSearch, searchValue }) {
                             </button>
                         </div>
                         {suggestionsOpen && suggestions.length > 0 && (
-                            <ul className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl z-50 max-h-80 overflow-y-auto" role="listbox" aria-label="Search suggestions">
+                            <ul id="search-suggestions-listbox" className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl z-50 max-h-80 overflow-y-auto" role="listbox" aria-label="Search suggestions">
                                 {suggestions.map((item, index) => (
-                                    <li key={item.id}>
+                                    <li key={item.id} id={`search-suggestion-${index}`} role="option" aria-selected={index === activeIndex}>
                                         <button
                                             type="button"
                                             onClick={() => handleSuggestionPick(item)}
