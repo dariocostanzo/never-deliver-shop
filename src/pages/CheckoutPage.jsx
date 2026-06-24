@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useLocale } from '../context/LocaleContext';
@@ -299,12 +299,24 @@ export default function CheckoutPage() {
     const { country, formatCurrency, countryInfo } = useLocale();
     const navigate = useNavigate();
 
-    const restoredConfirmation = loadCheckoutConfirmation();
+    // Only treat a stored confirmation as valid when the cart is empty.
+    // A non-empty cart means the user is starting a brand-new checkout,
+    // so any leftover confirmation is stale and must be ignored/cleared.
+    const hasItemsAtMount = useRef(items.length > 0);
+    const restoredConfirmation = hasItemsAtMount.current ? null : loadCheckoutConfirmation();
 
     const [step, setStep] = useState(() => (restoredConfirmation ? 3 : 0)); // 0=Delivery, 1=Payment, 2=Processing, 3=Confirmation
     const [form, setForm] = useState(() => restoredConfirmation?.form || getInitialCheckoutForm(country));
     const [orderId] = useState(() => restoredConfirmation?.orderId || genOrderId());
     const [deliveryDate] = useState(() => restoredConfirmation?.deliveryDate || genDeliveryDate(countryInfo.locale));
+    const [confirmedTotal, setConfirmedTotal] = useState(() => (typeof restoredConfirmation?.total === 'number' ? restoredConfirmation.total : null));
+
+    // Clear any stale confirmation when a fresh checkout begins.
+    useEffect(() => {
+        if (hasItemsAtMount.current) {
+            clearCheckoutConfirmation();
+        }
+    }, []);
 
     if (items.length === 0 && step < 3) {
         return (
@@ -341,6 +353,7 @@ export default function CheckoutPage() {
             form,
         });
 
+        setConfirmedTotal(finalTotal);
         clearCart();
         setStep(3);
     }
@@ -349,8 +362,8 @@ export default function CheckoutPage() {
     const expressUpcharge = form.deliverySpeed === 'express' ? 9.99 : 0;
     const shipping = standardShipping + expressUpcharge;
     const calculatedTotal = subtotal + shipping;
-    const total = (step === 3 && items.length === 0 && typeof restoredConfirmation?.total === 'number')
-        ? restoredConfirmation.total
+    const total = (step === 3 && typeof confirmedTotal === 'number')
+        ? confirmedTotal
         : calculatedTotal;
 
     return (
@@ -504,7 +517,10 @@ function ConfirmationStep({ orderId, deliveryDate, total, form, formatCurrency, 
                         {relatedProducts.map(p => (
                             <button
                                 key={p.id}
-                                onClick={() => navigate(`/product/${p.id}`)}
+                                onClick={() => {
+                                    onExit();
+                                    navigate(`/product/${p.id}`);
+                                }}
                                 className="group text-left bg-gray-50 rounded border border-gray-200 p-2 hover:shadow transition-shadow"
                             >
                                 <img src={p.image} alt={p.title} className="h-16 w-full object-contain mb-1" />
