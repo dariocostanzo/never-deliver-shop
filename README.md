@@ -34,6 +34,8 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
   - Better placeholder/text visibility in search input
   - Skeleton loading states for key pages
   - Interactive review count opening a fake reviews panel
+  - Skip link and improved ARIA semantics for search suggestions
+  - Mobile-first responsive layout updates across header, listing, and product pages
 
 - Shopping flow:
   - Add/remove/update cart quantity
@@ -43,7 +45,7 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
 
 ## Screenshots and Demo
 
-Add your visuals under `docs/media/` and replace the placeholder paths below.
+Add your visuals under docs/media/ and replace the placeholder paths below.
 
 ### Home
 
@@ -57,15 +59,21 @@ Add your visuals under `docs/media/` and replace the placeholder paths below.
 
 ![Checkout screenshot](docs/media/checkout.png)
 
-### Search Suggestions (GIF)
-
-![Search suggestions demo](docs/media/search-suggestions.gif)
-
-### Accessibility Focus States (GIF)
-
-![Keyboard focus demo](docs/media/focus-states.gif)
-
 Tip: Keep screenshot widths around 1400px and optimize images before commit to keep the repository light.
+
+## Quality Standards
+
+- Documentation hygiene:
+  - Update this README whenever features, behavior, scripts, or UX flows change.
+  - Keep screenshot references accurate and remove outdated assets or sections.
+
+- Accessibility first:
+  - WCAG AA-friendly contrast, visible keyboard focus, and semantic ARIA usage are required.
+  - Keyboard-only navigation should work for all primary flows.
+
+- Responsiveness first:
+  - All UI updates must be validated on mobile and desktop breakpoints.
+  - Avoid layout regressions in header, product grids, forms, drawers, and checkout.
 
 ## Project Structure
 
@@ -107,7 +115,7 @@ npm run preview
 
 ## Notes
 
-- Product, rating, and review content are demo/fake data.
+- Product, rating, and review content are demo or fake data.
 - Checkout is fully simulated (no real payments or charges).
 - External APIs may occasionally rate-limit or change response shape.
 
