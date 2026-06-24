@@ -6,18 +6,23 @@ import { fetchCatalogProducts } from '../lib/catalogApi';
 import { useLanguage } from '../context/LanguageContext';
 
 const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [12, 20, 32, 48];
+const SORT_OPTIONS = ['relevance', 'price-asc', 'price-desc', 'rating-desc', 'newest'];
 
 export default function HomePage({ searchValue }) {
     const { t } = useLanguage();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-    const [sortBy, setSortBy] = useState('relevance');
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const categoryParam = searchParams.get('category') || 'All';
+    const pageParam = Number.parseInt(searchParams.get('page') || '1', 10);
+    const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+    const pageSizeParam = Number.parseInt(searchParams.get('perPage') || String(DEFAULT_PAGE_SIZE), 10);
+    const pageSize = PAGE_SIZE_OPTIONS.includes(pageSizeParam) ? pageSizeParam : DEFAULT_PAGE_SIZE;
+    const sortByParam = searchParams.get('sort') || 'relevance';
+    const sortBy = SORT_OPTIONS.includes(sortByParam) ? sortByParam : 'relevance';
 
     const loadProducts = useCallback(async () => {
         setLoading(true);
@@ -59,14 +64,46 @@ export default function HomePage({ searchValue }) {
         return 0;
     });
 
-    useEffect(() => {
-        setPage(1);
-    }, [categoryParam, searchValue, sortBy, pageSize]);
-
     const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
     const safePage = Math.min(page, totalPages);
     const pageStart = (safePage - 1) * pageSize;
     const pagedProducts = sorted.slice(pageStart, pageStart + pageSize);
+
+    useEffect(() => {
+        if (safePage === page) return;
+        const nextParams = new URLSearchParams(searchParams);
+        if (safePage <= 1) {
+            nextParams.delete('page');
+        } else {
+            nextParams.set('page', String(safePage));
+        }
+        setSearchParams(nextParams, { replace: true });
+    }, [page, safePage, searchParams, setSearchParams]);
+
+    function updateQueryParam(key, value, { resetPage = false } = {}) {
+        const nextParams = new URLSearchParams(searchParams);
+        if (value === null || value === undefined || value === '' || value === 'All') {
+            nextParams.delete(key);
+        } else {
+            nextParams.set(key, String(value));
+        }
+        if (resetPage) {
+            nextParams.delete('page');
+        }
+        setSearchParams(nextParams, { replace: true });
+    }
+
+    function toCategoryHref(category) {
+        const nextParams = new URLSearchParams(searchParams);
+        if (category === 'All') {
+            nextParams.delete('category');
+        } else {
+            nextParams.set('category', category);
+        }
+        nextParams.delete('page');
+        const query = nextParams.toString();
+        return query ? `/?${query}` : '/';
+    }
 
     const paginationWindowSize = 7;
     let startPage = Math.max(1, safePage - Math.floor(paginationWindowSize / 2));
@@ -97,7 +134,7 @@ export default function HomePage({ searchValue }) {
                     {categories.map(cat => (
                         <Link
                             key={cat}
-                            to={cat === 'All' ? '/' : `/?category=${encodeURIComponent(cat)}`}
+                            to={toCategoryHref(cat)}
                             className={`shrink-0 px-4 py-1.5 rounded-full text-sm font-medium border transition-colors capitalize focus-visible:ring-2 focus-visible:ring-[#ff9900]
                 ${(categoryParam === cat || (cat === 'All' && categoryParam === 'All'))
                                     ? 'bg-[#131921] text-white border-[#131921]'
@@ -139,7 +176,7 @@ export default function HomePage({ searchValue }) {
                                     <span className="mr-1">{t('sortBy')}</span>
                                     <select
                                         value={sortBy}
-                                        onChange={e => setSortBy(e.target.value)}
+                                        onChange={e => updateQueryParam('sort', e.target.value === 'relevance' ? '' : e.target.value, { resetPage: true })}
                                         className="border border-gray-400 bg-white rounded px-2 py-1 text-xs"
                                     >
                                         <option value="relevance">{t('relevance')}</option>
@@ -154,10 +191,10 @@ export default function HomePage({ searchValue }) {
                                     <span className="mr-1">{t('perPage')}</span>
                                     <select
                                         value={pageSize}
-                                        onChange={e => setPageSize(Number(e.target.value))}
+                                        onChange={e => updateQueryParam('perPage', Number(e.target.value) === DEFAULT_PAGE_SIZE ? '' : Number(e.target.value), { resetPage: true })}
                                         className="border border-gray-400 bg-white rounded px-2 py-1 text-xs"
                                     >
-                                        {[12, 20, 32, 48].map(size => (
+                                        {PAGE_SIZE_OPTIONS.map(size => (
                                             <option key={size} value={size}>{size}</option>
                                         ))}
                                     </select>
@@ -173,7 +210,7 @@ export default function HomePage({ searchValue }) {
                             <div className="mt-6 flex items-center justify-center gap-2 flex-wrap">
                                 <button
                                     type="button"
-                                    onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                                    onClick={() => updateQueryParam('page', safePage - 1 <= 1 ? '' : safePage - 1)}
                                     disabled={safePage === 1}
                                     className="px-3 py-1.5 rounded border border-gray-400 bg-white text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -187,7 +224,7 @@ export default function HomePage({ searchValue }) {
                                         <button
                                             key={pageNum}
                                             type="button"
-                                            onClick={() => setPage(pageNum)}
+                                            onClick={() => updateQueryParam('page', pageNum <= 1 ? '' : pageNum)}
                                             className={`px-3 py-1.5 rounded border ${safePage === pageNum ? 'bg-[#131921] text-white border-[#131921]' : 'bg-white text-gray-900 border-gray-400'}`}
                                         >
                                             {pageNum}
@@ -199,7 +236,7 @@ export default function HomePage({ searchValue }) {
 
                                 <button
                                     type="button"
-                                    onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                                    onClick={() => updateQueryParam('page', Math.min(totalPages, safePage + 1) <= 1 ? '' : Math.min(totalPages, safePage + 1))}
                                     disabled={safePage === totalPages}
                                     className="px-3 py-1.5 rounded border border-gray-400 bg-white text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >

@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useLocale } from '../context/LocaleContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -17,6 +17,19 @@ export default function Header({ onSearch, searchValue }) {
     const prevTotal = useRef(totalItems);
     const searchWrapRef = useRef(null);
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+
+    function toCategoryHref(category) {
+        const nextParams = new URLSearchParams(searchParams);
+        if (category === 'All') {
+            nextParams.delete('category');
+        } else {
+            nextParams.set('category', category);
+        }
+        nextParams.delete('page');
+        const query = nextParams.toString();
+        return query ? `/?${query}` : '/';
+    }
 
     useEffect(() => {
         if (!searchValue?.trim()) {
@@ -282,7 +295,7 @@ export default function Header({ onSearch, searchValue }) {
                         {["All", "beauty", "fragrances", "smartphones", "furniture", "groceries"].map(cat => (
                             <Link
                                 key={cat}
-                                to={cat === 'All' ? '/' : `/?category=${encodeURIComponent(cat)}`}
+                                to={toCategoryHref(cat)}
                                 className="text-white hover:text-[#ff9900] transition-colors py-1 capitalize focus-visible:ring-2 focus-visible:ring-[#ff9900] rounded"
                             >
                                 {cat}
