@@ -13,42 +13,68 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
 ## Features
 
 - Catalog experience:
-	- Aggregated product catalog from multiple public APIs
-	- Category filtering
-	- Product details with related products
-	- Cart drawer and checkout flow
+ 	- Aggregated product catalog from multiple public APIs
+ 	- Category filtering
+ 	- Product details with related products
+ 	- Cart drawer and checkout flow
 
 - Search and discovery:
-	- Header search with live suggestions dropdown
-	- Keyboard navigation in suggestions
-	- Search by title, category, brand, and description
+ 	- Header search with live suggestions dropdown
+ 	- Keyboard navigation in suggestions
+ 	- Search by title, category, brand, and description
 
 - Localization and regionalization:
-	- Country selector (UK, Italy, US, Germany)
-	- Currency selector (GBP, EUR, USD)
-	- Language selector with flags (English, Italian, German)
+ 	- Country selector (UK, Italy, US, Germany)
+ 	- Currency selector (GBP, EUR, USD)
+ 	- Language selector with flags (English, Italian, German)
 
 - Accessibility and UX:
-	- Improved color contrast for text and metadata
-	- Keyboard-visible focus styles
-	- Better placeholder/text visibility in search input
-	- Skeleton loading states for key pages
-	- Interactive review count opening a fake reviews panel
+ 	- Improved color contrast for text and metadata
+ 	- Keyboard-visible focus styles
+ 	- Better placeholder/text visibility in search input
+ 	- Skeleton loading states for key pages
+ 	- Interactive review count opening a fake reviews panel
 
 - Shopping flow:
-	- Add/remove/update cart quantity
-	- Fake checkout with prefilled profile data
-	- Simulated payment progress
-	- Order history page
+ 	- Add/remove/update cart quantity
+ 	- Fake checkout with prefilled profile data
+ 	- Simulated payment progress
+ 	- Order history page
+
+## Screenshots and Demo
+
+Add your visuals under `docs/media/` and replace the placeholder paths below.
+
+### Home
+
+![Home page screenshot](docs/media/home.png)
+
+### Product Detail
+
+![Product detail screenshot](docs/media/product-detail.png)
+
+### Checkout
+
+![Checkout screenshot](docs/media/checkout.png)
+
+### Search Suggestions (GIF)
+
+![Search suggestions demo](docs/media/search-suggestions.gif)
+
+### Accessibility Focus States (GIF)
+
+![Keyboard focus demo](docs/media/focus-states.gif)
+
+Tip: Keep screenshot widths around 1400px and optimize images before commit to keep the repository light.
 
 ## Project Structure
 
 ```text
 src/
-	components/
-	context/
-	lib/
-	pages/
+ components/
+ context/
+ lib/
+ pages/
 ```
 
 ## Getting Started
