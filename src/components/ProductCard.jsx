@@ -6,7 +6,7 @@ import { StarRating } from './StarRating';
 import { getProductImageSrc, handleProductImageError } from '../lib/imageUtils';
 
 export default function ProductCard({ product }) {
-  const { addItem, openDrawer } = useCart();
+  const { addItem } = useCart();
   const { formatCurrency } = useLocale();
   const [btnAnim, setBtnAnim] = useState(false);
   const [added, setAdded] = useState(false);
@@ -20,11 +20,8 @@ export default function ProductCard({ product }) {
     setBtnAnim(true);
     setAdded(true);
     setTimeout(() => setBtnAnim(false), 450);
-    setTimeout(() => {
-      setAdded(false);
-      openDrawer();
-    }, 800);
-  }, [addItem, openDrawer, product]);
+    setTimeout(() => setAdded(false), 800);
+  }, [addItem, product]);
 
   return (
     <Link

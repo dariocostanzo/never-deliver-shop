@@ -39,7 +39,7 @@ export default function ProductPage() {
     const [btnAnim, setBtnAnim] = useState(false);
     const [added, setAdded] = useState(false);
     const [showReviews, setShowReviews] = useState(false);
-    const { addItem, openDrawer } = useCart();
+    const { addItem } = useCart();
     const { formatCurrency } = useLocale();
 
     useEffect(() => {
@@ -62,8 +62,8 @@ export default function ProductPage() {
         setBtnAnim(true);
         setAdded(true);
         setTimeout(() => setBtnAnim(false), 450);
-        setTimeout(() => openDrawer(), 600);
-    }, [addItem, openDrawer, product, qty]);
+        setTimeout(() => setAdded(false), 600);
+    }, [addItem, product, qty]);
 
     if (loading) {
         return (

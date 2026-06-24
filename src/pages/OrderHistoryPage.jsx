@@ -47,7 +47,7 @@ export default function OrderHistoryPage() {
             }
         });
         openDrawer();
-        navigate('/');
+        navigate('/');  // Explicitly open drawer and navigate home for buy again
     }
 
     return (
