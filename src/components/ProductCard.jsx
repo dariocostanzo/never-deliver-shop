@@ -58,13 +58,13 @@ export default function ProductCard({ product }) {
           <span className="text-xs font-semibold text-red-600">Only 3 left in stock!</span>
         )}
 
-        <div className="mt-auto pt-2 flex items-end justify-between">
-          <div>
-            <span className="text-xl font-bold text-gray-900">{formatCurrency(product.price)}</span>
+        <div className="mt-auto pt-2 flex flex-col gap-2">
+          <div className="min-w-0">
+            <span className="block text-xl font-bold text-gray-900 truncate">{formatCurrency(product.price)}</span>
           </div>
           <button
             onClick={handleAdd}
-            className={`text-sm font-semibold px-3 py-1.5 rounded-full transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#ff9900] cursor-pointer
+            className={`h-9 w-28 self-end shrink-0 inline-flex items-center justify-center whitespace-nowrap text-sm font-semibold rounded-full transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#ff9900] cursor-pointer
               ${added
                 ? 'bg-green-500 text-white scale-95'
                 : 'bg-[#ff9900] hover:bg-[#e88b00] text-[#131921]'

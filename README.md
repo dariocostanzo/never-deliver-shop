@@ -45,6 +45,8 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
 - Shopping flow:
   - Add/remove/update cart quantity
   - Fake checkout with prefilled profile data
+  - Delivery speed pricing is persisted correctly into order history totals
+  - Checkout confirmation survives page refresh right after payment
   - Simulated payment progress
   - Order history page
 

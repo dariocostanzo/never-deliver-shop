@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useLocale } from '../context/LocaleContext';
 import { fetchCatalogProducts } from '../lib/catalogApi';
 
 const STEPS = ['Delivery', 'Payment', 'Processing', 'Confirmation'];
+const CHECKOUT_CONFIRMATION_KEY = 'nds-checkout-confirmation';
 
 function genOrderId() {
     return `NDV-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
@@ -14,6 +15,34 @@ function genDeliveryDate(locale) {
     const d = new Date();
     d.setDate(d.getDate() + 2 + Math.floor(Math.random() * 3));
     return d.toLocaleDateString(locale, { weekday: 'long', month: 'long', day: 'numeric' });
+}
+
+function loadCheckoutConfirmation() {
+    try {
+        const raw = sessionStorage.getItem(CHECKOUT_CONFIRMATION_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.orderId || !parsed?.form) return null;
+        return parsed;
+    } catch {
+        return null;
+    }
+}
+
+function saveCheckoutConfirmation(payload) {
+    try {
+        sessionStorage.setItem(CHECKOUT_CONFIRMATION_KEY, JSON.stringify(payload));
+    } catch {
+        // ignore storage errors
+    }
+}
+
+function clearCheckoutConfirmation() {
+    try {
+        sessionStorage.removeItem(CHECKOUT_CONFIRMATION_KEY);
+    } catch {
+        // ignore storage errors
+    }
 }
 
 // ── Step 1: Delivery ──────────────────────────────────────────────────────────
@@ -217,7 +246,7 @@ function ProcessingStep({ onDone }) {
     const [progress, setProgress] = useState(0);
     const [statusMsg, setStatusMsg] = useState('Verifying payment details...');
 
-    useState(() => {
+    useEffect(() => {
         const messages = [
             [0, 'Verifying payment details...'],
             [20, 'Contacting bank...'],
@@ -241,7 +270,7 @@ function ProcessingStep({ onDone }) {
         }, 420);
 
         return () => clearInterval(tick);
-    });
+    }, [onDone]);
 
     return (
         <div className="flex flex-col items-center justify-center py-12 gap-6 animate-fade-in-up">
@@ -270,10 +299,12 @@ export default function CheckoutPage() {
     const { country, formatCurrency, countryInfo } = useLocale();
     const navigate = useNavigate();
 
-    const [step, setStep] = useState(0); // 0=Delivery, 1=Payment, 2=Processing, 3=Confirmation
-    const [form, setForm] = useState(() => getInitialCheckoutForm(country));
-    const [orderId] = useState(genOrderId);
-    const [deliveryDate] = useState(() => genDeliveryDate(countryInfo.locale));
+    const restoredConfirmation = loadCheckoutConfirmation();
+
+    const [step, setStep] = useState(() => (restoredConfirmation ? 3 : 0)); // 0=Delivery, 1=Payment, 2=Processing, 3=Confirmation
+    const [form, setForm] = useState(() => restoredConfirmation?.form || getInitialCheckoutForm(country));
+    const [orderId] = useState(() => restoredConfirmation?.orderId || genOrderId());
+    const [deliveryDate] = useState(() => restoredConfirmation?.deliveryDate || genDeliveryDate(countryInfo.locale));
 
     if (items.length === 0 && step < 3) {
         return (
@@ -289,15 +320,27 @@ export default function CheckoutPage() {
     }
 
     function handleProcessingDone() {
+        const standardShipping = subtotal > 25 ? 0 : 4.99;
+        const expressUpcharge = form.deliverySpeed === 'express' ? 9.99 : 0;
+        const finalTotal = subtotal + standardShipping + expressUpcharge;
+
         // Save order to history
         saveOrder({
             id: orderId,
             date: new Date().toISOString(),
             items: items.map(i => ({ ...i })),
-            total: subtotal + (subtotal > 25 ? 0 : 4.99),
+            total: finalTotal,
             deliveryDate,
             address: `${form.fullName}, ${form.address}, ${form.city}, ${form.state} ${form.zip}`,
         });
+
+        saveCheckoutConfirmation({
+            orderId,
+            deliveryDate,
+            total: finalTotal,
+            form,
+        });
+
         clearCart();
         setStep(3);
     }
@@ -305,7 +348,10 @@ export default function CheckoutPage() {
     const standardShipping = subtotal > 25 ? 0 : 4.99;
     const expressUpcharge = form.deliverySpeed === 'express' ? 9.99 : 0;
     const shipping = standardShipping + expressUpcharge;
-    const total = subtotal + shipping;
+    const calculatedTotal = subtotal + shipping;
+    const total = (step === 3 && items.length === 0 && typeof restoredConfirmation?.total === 'number')
+        ? restoredConfirmation.total
+        : calculatedTotal;
 
     return (
         <div className="min-h-screen bg-[#eaeded]">
@@ -332,7 +378,7 @@ export default function CheckoutPage() {
                         {step === 0 && <DeliveryStep form={form} setForm={setForm} onNext={() => setStep(1)} countryCode={country} />}
                         {step === 1 && <PaymentStep form={form} setForm={setForm} onNext={() => setStep(2)} onBack={() => setStep(0)} />}
                         {step === 2 && <ProcessingStep onDone={handleProcessingDone} />}
-                        {step === 3 && <ConfirmationStep orderId={orderId} deliveryDate={deliveryDate} total={total} form={form} formatCurrency={formatCurrency} />}
+                        {step === 3 && <ConfirmationStep orderId={orderId} deliveryDate={deliveryDate} total={total} form={form} formatCurrency={formatCurrency} onExit={clearCheckoutConfirmation} />}
                     </div>
                 </div>
 
@@ -388,13 +434,13 @@ export default function CheckoutPage() {
 }
 
 // ── Confirmation (inline to share state) ──────────────────────────────────────
-function ConfirmationStep({ orderId, deliveryDate, total, form, formatCurrency }) {
+function ConfirmationStep({ orderId, deliveryDate, total, form, formatCurrency, onExit }) {
     const navigate = useNavigate();
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [confettiDone, setConfettiDone] = useState(false);
 
     // Fire confetti
-    useState(() => {
+    useEffect(() => {
         import('canvas-confetti').then(({ default: confetti }) => {
             const end = Date.now() + 2500;
             const frame = () => {
@@ -409,7 +455,7 @@ function ConfirmationStep({ orderId, deliveryDate, total, form, formatCurrency }
         fetchCatalogProducts(30)
             .then(products => setRelatedProducts(products.slice(0, 6)))
             .catch(() => { });
-    });
+    }, []);
 
     return (
         <div className="space-y-6 animate-fade-in-up">
@@ -471,10 +517,22 @@ function ConfirmationStep({ orderId, deliveryDate, total, form, formatCurrency }
             )}
 
             <div className="flex flex-col sm:flex-row gap-3">
-                <button onClick={() => navigate('/orders')} className="flex-1 border border-gray-300 py-2.5 rounded-full text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors">
+                <button
+                    onClick={() => {
+                        onExit();
+                        navigate('/orders');
+                    }}
+                    className="flex-1 border border-gray-300 py-2.5 rounded-full text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+                >
                     View Orders
                 </button>
-                <button onClick={() => navigate('/')} className="flex-1 bg-[#ff9900] hover:bg-[#e88b00] text-[#131921] font-bold py-2.5 rounded-full transition-colors">
+                <button
+                    onClick={() => {
+                        onExit();
+                        navigate('/');
+                    }}
+                    className="flex-1 bg-[#ff9900] hover:bg-[#e88b00] text-[#131921] font-bold py-2.5 rounded-full transition-colors"
+                >
                     Keep Shopping
                 </button>
             </div>
