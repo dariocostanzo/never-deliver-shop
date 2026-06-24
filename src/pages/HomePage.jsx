@@ -9,6 +9,10 @@ const DEFAULT_PAGE_SIZE = 20;
 const PAGE_SIZE_OPTIONS = [12, 20, 32, 48];
 const SORT_OPTIONS = ['relevance', 'price-asc', 'price-desc', 'rating-desc', 'newest'];
 
+const LEGACY_CATEGORY_GROUPS = {
+    clothes: ["men's clothing", "women's clothing", 'mens-shirts', 'womens-dresses', 'tops'],
+};
+
 export default function HomePage({ searchValue }) {
     const { t } = useLanguage();
     const [products, setProducts] = useState([]);
@@ -48,9 +52,14 @@ export default function HomePage({ searchValue }) {
 
     const categories = ['All', ...Array.from(new Set(products.map(p => p.category))).sort((a, b) => a.localeCompare(b))];
 
+    const lowerCategoryParam = categoryParam.toLowerCase();
+    const legacyGroup = LEGACY_CATEGORY_GROUPS[lowerCategoryParam];
+
     const inCategory = categoryParam === 'All'
         ? products
-        : products.filter(p => p.category === categoryParam);
+        : legacyGroup
+            ? products.filter(p => legacyGroup.includes(String(p.category).toLowerCase()))
+            : products.filter(p => p.category === categoryParam);
 
     const filtered = searchValue
         ? inCategory.filter(p =>

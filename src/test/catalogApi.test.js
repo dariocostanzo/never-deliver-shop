@@ -1,8 +1,24 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fetchCatalogProducts, fetchCatalogPage, searchCatalogProducts, fetchProductById } from '../lib/catalogApi';
+import { fetchCatalogProducts, fetchCatalogPage, searchCatalogProducts } from '../lib/catalogApi';
 
 // Mock global fetch
 global.fetch = vi.fn();
+
+const DUMMY_PRODUCT_RESPONSE = {
+    products: [
+        {
+            id: 1,
+            title: 'Dummy Product',
+            description: 'A product from DummyJSON',
+            category: 'electronics',
+            price: 99,
+            thumbnail: 'dummy.jpg',
+            stock: 10,
+            rating: 4.2,
+            brand: 'Dummy Brand',
+        },
+    ],
+};
 
 describe('catalogApi', () => {
     beforeEach(() => {
@@ -18,19 +34,7 @@ describe('catalogApi', () => {
                 if (url.includes('dummyjson')) {
                     return Promise.resolve({
                         ok: true,
-                        json: () => Promise.resolve({ products: [] }),
-                    });
-                }
-                if (url.includes('escuelajs')) {
-                    return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve([]),
-                    });
-                }
-                if (url.includes('makeup-api')) {
-                    return Promise.resolve({
-                        ok: true,
-                        json: () => Promise.resolve([]),
+                        json: () => Promise.resolve(DUMMY_PRODUCT_RESPONSE),
                     });
                 }
                 if (url.includes('fakestoreapi')) {
@@ -71,10 +75,10 @@ describe('catalogApi', () => {
         });
 
         it('returns correct page slices', async () => {
-            global.fetch.mockResolvedValue({
+            global.fetch.mockImplementation((url) => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({ products: [] }),
-            });
+                json: () => Promise.resolve(url.includes('dummyjson') ? DUMMY_PRODUCT_RESPONSE : []),
+            }));
 
             // First page
             const page1 = await fetchCatalogPage(1, 5);
@@ -85,10 +89,10 @@ describe('catalogApi', () => {
         });
 
         it('calculates total pages correctly', async () => {
-            global.fetch.mockResolvedValue({
+            global.fetch.mockImplementation((url) => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({ products: [] }),
-            });
+                json: () => Promise.resolve(url.includes('dummyjson') ? DUMMY_PRODUCT_RESPONSE : []),
+            }));
 
             const result = await fetchCatalogPage(1, 20);
             expect(result.totalPages).toBeGreaterThanOrEqual(1);
@@ -97,20 +101,20 @@ describe('catalogApi', () => {
 
     describe('fetchCatalogProducts', () => {
         it('returns products array', async () => {
-            global.fetch.mockResolvedValue({
+            global.fetch.mockImplementation((url) => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({ products: [] }),
-            });
+                json: () => Promise.resolve(url.includes('dummyjson') ? DUMMY_PRODUCT_RESPONSE : []),
+            }));
 
             const result = await fetchCatalogProducts();
             expect(Array.isArray(result)).toBe(true);
         });
 
         it('respects limit parameter', async () => {
-            global.fetch.mockResolvedValue({
+            global.fetch.mockImplementation((url) => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({ products: [] }),
-            });
+                json: () => Promise.resolve(url.includes('dummyjson') ? DUMMY_PRODUCT_RESPONSE : []),
+            }));
 
             const result = await fetchCatalogProducts(50);
             expect(result.length).toBeLessThanOrEqual(50);
@@ -124,10 +128,10 @@ describe('catalogApi', () => {
         });
 
         it('filters by title, category, brand, and description', async () => {
-            global.fetch.mockResolvedValue({
+            global.fetch.mockImplementation((url) => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({ products: [] }),
-            });
+                json: () => Promise.resolve(url.includes('dummyjson') ? DUMMY_PRODUCT_RESPONSE : []),
+            }));
 
             // Would test with actual data but mocking complexity
             const result = await searchCatalogProducts('electronics', 10);

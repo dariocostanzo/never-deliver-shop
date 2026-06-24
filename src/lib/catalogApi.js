@@ -1,6 +1,4 @@
 const DUMMYJSON_BASE = 'https://dummyjson.com';
-const ESCUELA_BASE = 'https://api.escuelajs.co/api/v1';
-const MAKEUP_BASE = 'https://makeup-api.herokuapp.com/api/v1';
 const FAKESTORE_BASE = 'https://fakestoreapi.com';
 
 let catalogCache = null;
@@ -38,44 +36,6 @@ function normalizeDummyProduct(raw) {
     };
 }
 
-function normalizeEscuelaProduct(raw) {
-    const syntheticRating = seededNumber(raw.title || raw.id, 3.5, 5);
-    return {
-        id: `es-${raw.id}`,
-        title: raw.title,
-        description: raw.description || '',
-        category: raw.category?.name || 'other',
-        price: asNumber(raw.price, 0),
-        image: raw.images?.[0] || '',
-        rating: {
-            rate: Number(syntheticRating.toFixed(1)),
-            count: Math.round(seededNumber(raw.id, 24, 1400)),
-        },
-        stock: Math.round(seededNumber(raw.id, 3, 90)),
-        brand: raw.category?.name || 'Marketplace',
-    };
-}
-
-function normalizeMakeupProduct(raw) {
-    const numericPrice = asNumber(raw.price, 0);
-    const title = raw.name || raw.brand || `Beauty Product ${raw.id}`;
-
-    return {
-        id: `mk-${raw.id}`,
-        title,
-        description: raw.description || `${raw.brand || 'Beauty'} ${raw.product_type || 'item'}`,
-        category: raw.product_type || 'beauty',
-        price: numericPrice > 0 ? numericPrice : Number(seededNumber(raw.id, 6, 40).toFixed(2)),
-        image: raw.image_link || '',
-        rating: {
-            rate: Number(seededNumber(raw.id, 3.7, 4.9).toFixed(1)),
-            count: Math.round(seededNumber(raw.id, 20, 1800)),
-        },
-        stock: Math.round(seededNumber(raw.id, 4, 120)),
-        brand: raw.brand || 'Makeup',
-    };
-}
-
 function normalizeFakestoreProduct(raw) {
     return {
         id: `fs-${raw.id}`,
@@ -103,23 +63,6 @@ function dedupeProducts(products) {
     });
 }
 
-async function fetchMakeupProducts() {
-    const brands = ['maybelline', 'nyx', 'loreal', 'revlon'];
-    const results = await Promise.allSettled(
-        brands.map(brand =>
-            fetch(`${MAKEUP_BASE}/products.json?brand=${encodeURIComponent(brand)}`).then(r => {
-                if (!r.ok) throw new Error(`makeup ${brand} failed`);
-                return r.json();
-            })
-        )
-    );
-
-    return results
-        .filter(result => result.status === 'fulfilled')
-        .flatMap(result => result.value || [])
-        .map(normalizeMakeupProduct);
-}
-
 async function fetchFakestoreProducts() {
     try {
         const res = await fetch(`${FAKESTORE_BASE}/products`);
@@ -139,20 +82,15 @@ async function initializeCatalog() {
 
     if (!catalogInitPromise) {
         catalogInitPromise = (async () => {
-            const [dummyResult, escuelaResult, makeupProducts, fakestoreProducts] = await Promise.all([
+            const [dummyResult, fakestoreProducts] = await Promise.all([
                 fetch(`${DUMMYJSON_BASE}/products?limit=194`)
                     .then(r => (r.ok ? r.json() : { products: [] }))
                     .then(data => (data.products || []).map(normalizeDummyProduct))
                     .catch(() => []),
-                fetch(`${ESCUELA_BASE}/products?offset=0&limit=350`)
-                    .then(r => (r.ok ? r.json() : []))
-                    .then(data => (Array.isArray(data) ? data : []).map(normalizeEscuelaProduct))
-                    .catch(() => []),
-                fetchMakeupProducts().catch(() => []),
                 fetchFakestoreProducts().catch(() => []),
             ]);
 
-            const combined = dedupeProducts([...dummyResult, ...escuelaResult, ...makeupProducts, ...fakestoreProducts]);
+            const combined = dedupeProducts([...dummyResult, ...fakestoreProducts]);
             if (combined.length === 0) {
                 throw new Error('Failed to fetch products');
             }
@@ -210,25 +148,11 @@ export async function fetchProductById(id) {
         return normalizeDummyProduct(data);
     }
 
-    if (source === 'es') {
-        const res = await fetch(`${ESCUELA_BASE}/products/${rawId}`);
-        if (!res.ok) throw new Error('Failed to fetch product');
-        const data = await res.json();
-        return normalizeEscuelaProduct(data);
-    }
-
     if (source === 'fs') {
         const res = await fetch(`${FAKESTORE_BASE}/products/${rawId}`);
         if (!res.ok) throw new Error('Failed to fetch product');
         const data = await res.json();
         return normalizeFakestoreProduct(data);
-    }
-
-    if (source === 'mk') {
-        const catalog = await fetchCatalogProducts(900);
-        const found = catalog.find(product => product.id === id);
-        if (!found) throw new Error('Failed to fetch product');
-        return found;
     }
 
     if (rawId === undefined) {

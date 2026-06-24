@@ -13,7 +13,7 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
 ## Features
 
 - Catalog experience:
-  - **613+ products** aggregated from 4 public APIs (DummyJSON, Escuela JS, Makeup, Fakestore)
+  - **200+ products** aggregated from 2 public APIs (DummyJSON, Fakestore)
   - 20+ product categories (electronics, fashion, beauty, jewelry, automotive, groceries, etc.)
   - Category filtering
   - Product details with related products
@@ -33,6 +33,7 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
   - Improved color contrast for text and metadata
   - Keyboard-visible focus styles
   - Better placeholder/text visibility in search input
+  - Automatic product image fallback when third-party image hosts are blocked by region/browser policy
   - Skeleton loading states for key pages
   - Interactive review count opening a fake reviews panel
   - Skip link and improved ARIA semantics for search suggestions
@@ -107,7 +108,7 @@ npm test
 - **Lazy-loaded catalog**: Uses `fetchCatalogPage()` for efficient pagination instead of loading all 600+ products at once
 - **Intelligent caching**: Full catalog is built once on first request and cached for instant subsequent loads
 - **Client-side pagination**: Filter, sort, and paginate products in-memory for instant interactions (after initial load)
-- **API aggregation**: Combines 4 public APIs (DummyJSON, Escuela JS, Makeup, Fakestore) with deduplication
+- **API aggregation**: Combines 2 public APIs (DummyJSON, Fakestore) with deduplication
 
 ## Privacy & Security
 
@@ -124,6 +125,7 @@ npm test
 - Product, rating, and review content are demo or fake data.
 - Checkout is fully simulated (no real payments or charges).
 - External APIs may occasionally rate-limit or change response shape.
+- Region-blocked image providers were removed from the catalog pipeline to improve global image reliability.
 
 ## Future Improvements
 

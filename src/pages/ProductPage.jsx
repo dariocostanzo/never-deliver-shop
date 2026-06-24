@@ -6,6 +6,7 @@ import { StarRating } from '../components/StarRating';
 import ProductCard from '../components/ProductCard';
 import { ProductPageSkeleton } from '../components/PageSkeletons';
 import { fetchProductById, fetchRelatedProducts } from '../lib/catalogApi';
+import { getProductImageSrc, handleProductImageError } from '../lib/imageUtils';
 
 const REVIEW_SNIPPETS = [
     'Surprisingly good quality for the price. Arrived exactly as described.',
@@ -100,7 +101,12 @@ export default function ProductPage() {
                 <div className="bg-white rounded-lg shadow p-4 sm:p-6 flex flex-col md:flex-row gap-5 sm:gap-8">
                     {/* Image */}
                     <div className="flex-shrink-0 flex items-center justify-center bg-gray-50 rounded-lg p-5 sm:p-8 w-full md:w-80 h-72 sm:h-80">
-                        <img src={product.image} alt={product.title} className="max-h-full max-w-full object-contain" />
+                        <img
+                            src={getProductImageSrc(product)}
+                            alt={product.title}
+                            className="max-h-full max-w-full object-contain"
+                            onError={(event) => handleProductImageError(event, product)}
+                        />
                     </div>
 
                     {/* Details */}

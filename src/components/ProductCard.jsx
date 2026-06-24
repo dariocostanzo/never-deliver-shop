@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useLocale } from '../context/LocaleContext';
 import { StarRating } from './StarRating';
+import { getProductImageSrc, handleProductImageError } from '../lib/imageUtils';
 
 export default function ProductCard({ product }) {
   const { addItem, openDrawer } = useCart();
@@ -33,10 +34,11 @@ export default function ProductCard({ product }) {
       {/* Image */}
       <div className="relative bg-gray-50 flex items-center justify-center h-44 sm:h-52 p-4">
         <img
-          src={product.image}
+          src={getProductImageSrc(product)}
           alt={product.title}
           className="h-full object-contain group-hover:scale-105 transition-transform duration-300"
           loading="lazy"
+          onError={(event) => handleProductImageError(event, product)}
         />
         <div className="absolute top-2 left-2 bg-[#0077b8] text-white text-[10px] font-bold px-2 py-0.5 rounded-sm">
           Plus FREE delivery
