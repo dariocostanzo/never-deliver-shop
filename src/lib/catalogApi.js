@@ -54,6 +54,18 @@ const NOVELTY_PRODUCTS = [
         stock: 1,
         brand: 'NeverDeliver Estates',
     },
+    {
+        id: 'nd-pokemon-grail-bundle',
+        title: 'Ultra-Rare Pokémon Cards Grail Bundle',
+        description:
+            "The chase is over. A vault-grade bundle of the rarest Pokémon cards ever printed — a PSA 10 1st Edition Base Set Charizard, a Pikachu Illustrator promo, a Trophy Pikachu, and a genuinely absurd number of holos. Sleeved, cased, and insured against everything except our delivery service. The original price is exactly what a mint-condition dream costs.",
+        category: 'collectibles',
+        price: 6500000,
+        image: 'https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?w=600&q=80',
+        rating: { rate: 5, count: 128 },
+        stock: 1,
+        brand: 'NeverDeliver Vault',
+    },
 ];
 
 let catalogCache = null;

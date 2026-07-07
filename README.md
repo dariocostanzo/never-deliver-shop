@@ -29,6 +29,9 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
   - Tongue-in-cheek homes to buy when we "don't deliver to your country" (London, Milan, Berlin, New York)
   - Appear in the catalog under a dedicated `real estate` category and are fully shoppable (and on sale)
 
+- Novelty collectibles:
+  - An ultra-rare Pokémon cards grail bundle (`collectibles` category) listed at its original grail-worthy price — fully shoppable and included in the flash sale
+
 - Search and discovery:
   - Header search with live suggestions dropdown
   - Keyboard navigation in suggestions
