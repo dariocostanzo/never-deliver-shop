@@ -19,6 +19,16 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
   - Product details with related products
   - Cart drawer and checkout flow
 
+- Flash sale:
+  - Site-wide **50% off everything** flash sale with a live 24h countdown banner
+  - Rolling countdown that resets to a fresh 24h window when it expires
+  - Original price strikethrough, discount badges, and savings totals across product cards, product pages, cart, and checkout
+  - Localized sale copy (English, Italian, German)
+
+- Novelty "real estate" listings:
+  - Tongue-in-cheek homes to buy when we "don't deliver to your country" (London, Milan, Berlin, New York)
+  - Appear in the catalog under a dedicated `real estate` category and are fully shoppable (and on sale)
+
 - Search and discovery:
   - Header search with live suggestions dropdown
   - Keyboard navigation in suggestions

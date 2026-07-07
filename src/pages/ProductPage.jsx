@@ -7,6 +7,8 @@ import ProductCard from '../components/ProductCard';
 import { ProductPageSkeleton } from '../components/PageSkeletons';
 import { fetchProductById, fetchRelatedProducts } from '../lib/catalogApi';
 import { getProductImageSrc, handleProductImageError } from '../lib/imageUtils';
+import { SALE_DISCOUNT_PERCENT } from '../lib/sale';
+import { useLanguage } from '../context/LanguageContext';
 
 const REVIEW_SNIPPETS = [
     'Surprisingly good quality for the price. Arrived exactly as described.',
@@ -41,6 +43,7 @@ export default function ProductPage() {
     const [showReviews, setShowReviews] = useState(false);
     const { addItem } = useCart();
     const { formatCurrency } = useLocale();
+    const { t } = useLanguage();
 
     useEffect(() => {
         setLoading(true);
@@ -85,6 +88,8 @@ export default function ProductPage() {
 
     const isLowStock = product.stock > 0 && product.stock <= 5;
     const fakeReviews = buildFakeReviews(product);
+    const onSale = product.onSale && product.originalPrice > product.price;
+    const savings = onSale ? product.originalPrice - product.price : 0;
 
     return (
         <div className="min-h-screen bg-[#eaeded]">
@@ -125,9 +130,21 @@ export default function ProductPage() {
                         </div>
 
                         <div className="border-t pt-3">
-                            <span className="text-3xl font-bold text-gray-900">{formatCurrency(product.price)}</span>
-                            {product.price > 20 && (
-                                <span className="ml-2 text-xs text-gray-700 line-through">{formatCurrency(product.price * 1.2)}</span>
+                            {onSale && (
+                                <span className="inline-block mb-1 bg-[#c7511f] text-white text-xs font-extrabold px-2 py-0.5 rounded-sm">
+                                    -{SALE_DISCOUNT_PERCENT}% {t('flashSale')}
+                                </span>
+                            )}
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                                <span className="text-3xl font-bold text-gray-900">{formatCurrency(product.price)}</span>
+                                {onSale && (
+                                    <span className="text-sm text-gray-700 line-through">{formatCurrency(product.originalPrice)}</span>
+                                )}
+                            </div>
+                            {onSale && (
+                                <p className="text-sm font-semibold text-green-700 mt-1">
+                                    {t('saveLabel')} {formatCurrency(savings)} ({SALE_DISCOUNT_PERCENT}% {t('off')})
+                                </p>
                             )}
                         </div>
 

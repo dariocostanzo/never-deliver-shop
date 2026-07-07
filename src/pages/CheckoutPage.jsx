@@ -362,6 +362,10 @@ export default function CheckoutPage() {
     const expressUpcharge = form.deliverySpeed === 'express' ? 9.99 : 0;
     const shipping = standardShipping + expressUpcharge;
     const calculatedTotal = subtotal + shipping;
+    const saleSavings = items.reduce((sum, item) => {
+        const original = Number(item.originalPrice) || item.price;
+        return sum + Math.max(0, original - item.price) * item.qty;
+    }, 0);
     const total = (step === 3 && typeof confirmedTotal === 'number')
         ? confirmedTotal
         : calculatedTotal;
@@ -416,6 +420,11 @@ export default function CheckoutPage() {
                                 <div className="flex justify-between text-gray-700">
                                     <span>Items ({totalItems}):</span><span>{formatCurrency(subtotal)}</span>
                                 </div>
+                                {saleSavings > 0 && (
+                                    <div className="flex justify-between text-green-700 font-semibold">
+                                        <span>Flash sale savings:</span><span>−{formatCurrency(saleSavings)}</span>
+                                    </div>
+                                )}
                                 {standardShipping > 0 && (
                                     <div className="flex justify-between text-gray-700">
                                         <span>Shipping:</span>

@@ -8,6 +8,11 @@ export default function CartDrawer() {
     const { formatCurrency } = useLocale();
     const drawerRef = useRef(null);
 
+    const totalSavings = items.reduce((sum, i) => {
+        const original = Number(i.originalPrice) || i.price;
+        return sum + Math.max(0, original - i.price) * i.qty;
+    }, 0);
+
     // Close on outside click
     useEffect(() => {
         function handler(e) {
@@ -62,7 +67,14 @@ export default function CartDrawer() {
                                 />
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.title}</p>
-                                    <p className="text-sm font-bold text-gray-900 mt-0.5">{formatCurrency(item.price * item.qty)}</p>
+                                    <p className="text-sm font-bold text-gray-900 mt-0.5">
+                                        {formatCurrency(item.price * item.qty)}
+                                        {Number(item.originalPrice) > item.price && (
+                                            <span className="ml-1.5 text-xs font-normal text-gray-500 line-through">
+                                                {formatCurrency(item.originalPrice * item.qty)}
+                                            </span>
+                                        )}
+                                    </p>
                                     <div className="flex items-center gap-2 mt-1">
                                         <button
                                             onClick={() => updateQty(item.id, item.qty - 1)}
@@ -91,6 +103,12 @@ export default function CartDrawer() {
                             <span>Subtotal ({totalItems} items):</span>
                             <span className="text-lg font-bold">{formatCurrency(subtotal)}</span>
                         </div>
+                        {totalSavings > 0 && (
+                            <div className="flex justify-between text-sm font-semibold text-green-700">
+                                <span>Flash sale savings:</span>
+                                <span>−{formatCurrency(totalSavings)}</span>
+                            </div>
+                        )}
                         <div className="flex items-center gap-1 text-xs text-gray-600">
                             <span className="text-[#0077b8] font-bold">Plus</span>
                             <span>FREE delivery on this order</span>

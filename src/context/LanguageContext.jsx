@@ -38,6 +38,12 @@ const DICT = {
         retry: 'Retry',
         tip: 'Tip',
         tipTitle: 'Support this project on Ko-fi',
+        flashSale: 'Flash Sale',
+        saleHeadline: '50% OFF everything',
+        saleSubline: 'Every item, half price — even the houses.',
+        saleEndsIn: 'Ends in',
+        saveLabel: 'You save',
+        off: 'OFF',
     },
     it: {
         searchPlaceholder: 'Cerca prodotti...',
@@ -68,6 +74,12 @@ const DICT = {
         retry: 'Riprova',
         tip: 'Offri',
         tipTitle: 'Sostieni questo progetto su Ko-fi',
+        flashSale: 'Offerta Lampo',
+        saleHeadline: '50% di SCONTO su tutto',
+        saleSubline: 'Ogni articolo a meta prezzo — anche le case.',
+        saleEndsIn: 'Finisce tra',
+        saveLabel: 'Risparmi',
+        off: 'SCONTO',
     },
     de: {
         searchPlaceholder: 'Produkte suchen...',
@@ -98,6 +110,12 @@ const DICT = {
         retry: 'Erneut versuchen',
         tip: 'Spende',
         tipTitle: 'Unterstutze dieses Projekt auf Ko-fi',
+        flashSale: 'Blitzangebot',
+        saleHeadline: '50% RABATT auf alles',
+        saleSubline: 'Jeder Artikel zum halben Preis — sogar die Hauser.',
+        saleEndsIn: 'Endet in',
+        saveLabel: 'Du sparst',
+        off: 'RABATT',
     },
 };
 

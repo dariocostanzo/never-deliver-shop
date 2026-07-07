@@ -1,5 +1,60 @@
+import { withSalePricing } from './sale';
+
 const DUMMYJSON_BASE = 'https://dummyjson.com';
 const FAKESTORE_BASE = 'https://fakestoreapi.com';
+
+// Tongue-in-cheek "we never deliver" novelty listings. If we can't deliver to
+// your country, just buy a home somewhere we can!
+const NOVELTY_PRODUCTS = [
+    {
+        id: 'nd-house-london',
+        title: 'A Whole House in London',
+        description:
+            "Don't we deliver to your country? No problem — buy this house in London and we'll deliver everything right to its front door. Comes with a red door, a permanently grey sky, and the best excuse for FREE delivery you'll ever have. Two beds, one very British kettle.",
+        category: 'real estate',
+        price: 1250000,
+        image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80',
+        rating: { rate: 5, count: 342 },
+        stock: 1,
+        brand: 'NeverDeliver Estates',
+    },
+    {
+        id: 'nd-apartment-milan',
+        title: 'A Stylish Apartment in Milan',
+        description:
+            "Fashionably located and impossible to resist. Buy this Milan apartment and suddenly we absolutely deliver to your address. Includes an espresso machine you'll never clean and a balcony for judging passers-by.",
+        category: 'real estate',
+        price: 890000,
+        image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80',
+        rating: { rate: 4.9, count: 211 },
+        stock: 1,
+        brand: 'NeverDeliver Estates',
+    },
+    {
+        id: 'nd-flat-berlin',
+        title: 'A Loft in Berlin',
+        description:
+            "Exposed brick, questionable art, and unbeatable delivery coverage. Own this Berlin loft and watch our couriers finally find you. Warehouse-chic ceilings included; the techno is sold separately.",
+        category: 'real estate',
+        price: 760000,
+        image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80',
+        rating: { rate: 4.8, count: 178 },
+        stock: 1,
+        brand: 'NeverDeliver Estates',
+    },
+    {
+        id: 'nd-brownstone-newyork',
+        title: 'A Brownstone in New York',
+        description:
+            "If you can make it here, we'll deliver here. Snap up this New York brownstone and enjoy same-decade delivery to your very own stoop. Includes a fire escape with a view and neighbours who never sleep.",
+        category: 'real estate',
+        price: 2100000,
+        image: 'https://images.unsplash.com/photo-1518235506717-e1ed3306a89b?w=600&q=80',
+        rating: { rate: 5, count: 405 },
+        stock: 1,
+        brand: 'NeverDeliver Estates',
+    },
+];
 
 let catalogCache = null;
 let catalogInitPromise = null;
@@ -95,7 +150,10 @@ async function initializeCatalog() {
                 throw new Error('Failed to fetch products');
             }
 
-            catalogCache = combined;
+            // Prepend novelty listings, then apply the flash-sale discount to
+            // the whole catalog so pricing stays consistent everywhere.
+            const withNovelty = [...NOVELTY_PRODUCTS, ...combined];
+            catalogCache = withNovelty.map(withSalePricing);
             return catalogCache;
         })();
     }
@@ -141,18 +199,25 @@ export async function searchCatalogProducts(query, limit = 8) {
 export async function fetchProductById(id) {
     const [source, rawId] = String(id).split('-');
 
+    // Novelty listings live only in our local catalog.
+    if (source === 'nd') {
+        const novelty = NOVELTY_PRODUCTS.find(p => p.id === String(id));
+        if (novelty) return withSalePricing(novelty);
+        throw new Error('Unknown product source');
+    }
+
     if (source === 'dj') {
         const res = await fetch(`${DUMMYJSON_BASE}/products/${rawId}`);
         if (!res.ok) throw new Error('Failed to fetch product');
         const data = await res.json();
-        return normalizeDummyProduct(data);
+        return withSalePricing(normalizeDummyProduct(data));
     }
 
     if (source === 'fs') {
         const res = await fetch(`${FAKESTORE_BASE}/products/${rawId}`);
         if (!res.ok) throw new Error('Failed to fetch product');
         const data = await res.json();
-        return normalizeFakestoreProduct(data);
+        return withSalePricing(normalizeFakestoreProduct(data));
     }
 
     if (rawId === undefined) {

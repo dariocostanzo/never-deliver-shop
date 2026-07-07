@@ -2,16 +2,20 @@ import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useLocale } from '../context/LocaleContext';
+import { useLanguage } from '../context/LanguageContext';
 import { StarRating } from './StarRating';
 import { getProductImageSrc, handleProductImageError } from '../lib/imageUtils';
+import { SALE_DISCOUNT_PERCENT } from '../lib/sale';
 
 export default function ProductCard({ product }) {
   const { addItem } = useCart();
   const { formatCurrency } = useLocale();
+  const { t } = useLanguage();
   const [btnAnim, setBtnAnim] = useState(false);
   const [added, setAdded] = useState(false);
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
+  const onSale = product.onSale && product.originalPrice > product.price;
 
   const handleAdd = useCallback((e) => {
     e.preventDefault();
@@ -40,6 +44,11 @@ export default function ProductCard({ product }) {
         <div className="absolute top-2 left-2 bg-[#0077b8] text-white text-[10px] font-bold px-2 py-0.5 rounded-sm">
           Plus FREE delivery
         </div>
+        {onSale && (
+          <div className="absolute top-2 right-2 bg-[#c7511f] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-sm shadow">
+            -{SALE_DISCOUNT_PERCENT}%
+          </div>
+        )}
       </div>
 
       {/* Info */}
@@ -58,6 +67,12 @@ export default function ProductCard({ product }) {
         <div className="mt-auto pt-2 flex flex-col gap-2">
           <div className="min-w-0">
             <span className="block text-xl font-bold text-gray-900 truncate">{formatCurrency(product.price)}</span>
+            {onSale && (
+              <span className="flex items-baseline gap-1.5 text-xs">
+                <span className="text-gray-600 line-through">{formatCurrency(product.originalPrice)}</span>
+                <span className="font-bold text-[#c7511f]">-{SALE_DISCOUNT_PERCENT}% {t('off')}</span>
+              </span>
+            )}
           </div>
           <button
             onClick={handleAdd}

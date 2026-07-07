@@ -3,6 +3,7 @@ import { CartProvider } from './context/CartContext'
 import { LocaleProvider } from './context/LocaleContext'
 import { LanguageProvider } from './context/LanguageContext'
 import Header from './components/Header'
+import SaleBanner from './components/SaleBanner'
 import HomePage from './pages/HomePage'
 import ProductPage from './pages/ProductPage'
 import CheckoutPage from './pages/CheckoutPage'
@@ -34,6 +35,7 @@ function AppContent() {
         Skip to main content
       </a>
       <Header onSearch={setSearchValue} searchValue={searchValue} />
+      <SaleBanner />
       <main id="main-content" className="flex-1">
         <Routes>
           <Route path="/" element={<HomePage searchValue={searchValue} />} />
