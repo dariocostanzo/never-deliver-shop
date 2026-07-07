@@ -29,6 +29,9 @@ It focuses on UX polish and modern front-end foundations: localization, accessib
   - Currency selector (GBP, EUR, USD)
   - Language selector with flags (English, Italian, German)
 
+- Support:
+  - Localized "Tip" button in the header linking to [Ko-fi](https://ko-fi.com/dc135837), available on both desktop and mobile layouts
+
 - Accessibility and UX:
   - Improved color contrast for text and metadata
   - Keyboard-visible focus styles

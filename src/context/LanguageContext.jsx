@@ -36,6 +36,8 @@ const DICT = {
         ratingHighLow: 'Rating: High to Low',
         newest: 'Newest',
         retry: 'Retry',
+        tip: 'Tip',
+        tipTitle: 'Support this project on Ko-fi',
     },
     it: {
         searchPlaceholder: 'Cerca prodotti...',
@@ -64,6 +66,8 @@ const DICT = {
         ratingHighLow: 'Valutazione: alta-bassa',
         newest: 'Piu recenti',
         retry: 'Riprova',
+        tip: 'Offri',
+        tipTitle: 'Sostieni questo progetto su Ko-fi',
     },
     de: {
         searchPlaceholder: 'Produkte suchen...',
@@ -92,6 +96,8 @@ const DICT = {
         ratingHighLow: 'Bewertung: hoch nach niedrig',
         newest: 'Neueste',
         retry: 'Erneut versuchen',
+        tip: 'Spende',
+        tipTitle: 'Unterstutze dieses Projekt auf Ko-fi',
     },
 };
 
