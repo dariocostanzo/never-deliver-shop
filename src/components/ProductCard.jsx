@@ -15,22 +15,26 @@ export default function ProductCard({ product }) {
   const [added, setAdded] = useState(false);
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
+  const isOutOfStock = product.stock <= 0;
   const onSale = product.onSale && product.originalPrice > product.price;
+  const discountPercent = product.discountPercent ?? SALE_DISCOUNT_PERCENT;
+  const isLightningDeal = product.isLightningDeal && onSale;
 
   const handleAdd = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isOutOfStock) return;
     addItem(product);
     setBtnAnim(true);
     setAdded(true);
     setTimeout(() => setBtnAnim(false), 450);
     setTimeout(() => setAdded(false), 800);
-  }, [addItem, product]);
+  }, [addItem, product, isOutOfStock]);
 
   return (
     <Link
       to={`/product/${product.id}`}
-      className="group bg-white rounded-lg border border-gray-300 hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden"
+      className="group h-full bg-white rounded-lg border border-gray-300 hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden"
     >
       {/* Image */}
       <div className="relative bg-gray-50 flex items-center justify-center h-44 sm:h-52 p-4">
@@ -44,9 +48,14 @@ export default function ProductCard({ product }) {
         <div className="absolute top-2 left-2 bg-[#0077b8] text-white text-[10px] font-bold px-2 py-0.5 rounded-sm">
           Plus FREE delivery
         </div>
+        {isLightningDeal && (
+          <div className="absolute top-2 left-2 mt-6 inline-flex items-center gap-1 bg-[#131921] text-[#ff9900] text-[10px] font-extrabold px-2 py-0.5 rounded-sm shadow uppercase tracking-wide">
+            ⚡ {t('lightningDeal')}
+          </div>
+        )}
         {onSale && (
-          <div className="absolute top-2 right-2 bg-[#c7511f] text-white text-[11px] font-extrabold px-2 py-0.5 rounded-sm shadow">
-            -{SALE_DISCOUNT_PERCENT}%
+          <div className={`absolute top-2 right-2 text-white text-[11px] font-extrabold px-2 py-0.5 rounded-sm shadow ${isLightningDeal ? 'bg-[#b12704]' : 'bg-[#c7511f]'}`}>
+            -{discountPercent}%
           </div>
         )}
       </div>
@@ -60,8 +69,10 @@ export default function ProductCard({ product }) {
 
         <StarRating rating={product.rating?.rate ?? 4} count={product.rating?.count} />
 
-        {isLowStock && (
-          <span className="text-xs font-semibold text-red-600">Only 3 left in stock!</span>
+        {isOutOfStock ? (
+          <span className="text-xs font-semibold text-gray-600">Out of stock</span>
+        ) : isLowStock && (
+          <span className="text-xs font-semibold text-red-600">Only {product.stock} left in stock!</span>
         )}
 
         <div className="mt-auto pt-2 flex flex-col gap-2">
@@ -70,13 +81,14 @@ export default function ProductCard({ product }) {
             {onSale && (
               <span className="flex items-baseline gap-1.5 text-xs">
                 <span className="text-gray-600 line-through">{formatCurrency(product.originalPrice)}</span>
-                <span className="font-bold text-[#c7511f]">-{SALE_DISCOUNT_PERCENT}% {t('off')}</span>
+                <span className={`font-bold ${isLightningDeal ? 'text-[#b12704]' : 'text-[#c7511f]'}`}>-{discountPercent}% {t('off')}</span>
               </span>
             )}
           </div>
           <button
             onClick={handleAdd}
-            className={`h-9 w-28 self-end shrink-0 inline-flex items-center justify-center whitespace-nowrap text-sm font-semibold rounded-full transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#ff9900] cursor-pointer
+            disabled={isOutOfStock}
+            className={`h-9 w-28 self-end shrink-0 inline-flex items-center justify-center whitespace-nowrap text-sm font-semibold rounded-full transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#ff9900] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
               ${added
                 ? 'bg-green-500 text-white scale-95'
                 : 'bg-[#ff9900] hover:bg-[#e88b00] text-[#131921]'
@@ -84,7 +96,7 @@ export default function ProductCard({ product }) {
               ${btnAnim ? 'animate-btn-bounce' : ''}
             `}
           >
-            {added ? '✓ Added' : 'Add to Cart'}
+            {isOutOfStock ? 'Sold Out' : added ? '✓ Added' : 'Add to Cart'}
           </button>
         </div>
       </div>

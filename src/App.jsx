@@ -1,13 +1,16 @@
 import { BrowserRouter, Routes, Route, useSearchParams } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import { CartProvider } from './context/CartContext'
 import { LocaleProvider } from './context/LocaleContext'
 import { LanguageProvider } from './context/LanguageContext'
 import Header from './components/Header'
 import SaleBanner from './components/SaleBanner'
+import CustomerSupport from './components/CustomerSupport'
 import HomePage from './pages/HomePage'
 import ProductPage from './pages/ProductPage'
 import CheckoutPage from './pages/CheckoutPage'
 import OrderHistoryPage from './pages/OrderHistoryPage'
+import GamesPage from './pages/GamesPage'
 
 function AppContent() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -42,11 +45,14 @@ function AppContent() {
           <Route path="/product/:id" element={<ProductPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrderHistoryPage />} />
+          <Route path="/games" element={<GamesPage />} />
         </Routes>
       </main>
       <footer className="bg-[#131921] text-gray-300 text-xs text-center py-4">
         © 2026 NeverDeliver · All transactions are fake · No real charges · Just dopamine
       </footer>
+      <CustomerSupport />
+      <Analytics />
     </div>
   )
 }

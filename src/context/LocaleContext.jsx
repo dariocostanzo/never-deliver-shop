@@ -7,12 +7,18 @@ const COUNTRY_CONFIG = {
     IT: { countryLabel: 'Italy', locale: 'it-IT', currency: 'EUR', symbol: 'EUR' },
     US: { countryLabel: 'United States', locale: 'en-US', currency: 'USD', symbol: 'USD' },
     DE: { countryLabel: 'Germany', locale: 'de-DE', currency: 'EUR', symbol: 'EUR' },
+    CA: { countryLabel: 'Canada', locale: 'en-CA', currency: 'CAD', symbol: 'CAD' },
+    AU: { countryLabel: 'Australia', locale: 'en-AU', currency: 'AUD', symbol: 'AUD' },
+    JP: { countryLabel: 'Japan', locale: 'ja-JP', currency: 'JPY', symbol: 'JPY' },
 };
 
 const CURRENCY_OPTIONS = [
     { code: 'GBP', label: 'GBP (£)' },
     { code: 'USD', label: 'USD ($)' },
     { code: 'EUR', label: 'EUR (€)' },
+    { code: 'CAD', label: 'CAD (C$)' },
+    { code: 'AUD', label: 'AUD (A$)' },
+    { code: 'JPY', label: 'JPY (¥)' },
 ];
 
 const LocaleContext = createContext(null);

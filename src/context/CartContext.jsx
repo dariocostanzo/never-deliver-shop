@@ -2,19 +2,29 @@ import { createContext, useContext, useReducer, useEffect } from 'react';
 
 const CartContext = createContext(null);
 
+// Prizes and some novelty items have no meaningful stock cap, so treat a
+// missing or non-positive stock value as "unlimited".
+function stockCap(product) {
+    const stock = Number(product?.stock);
+    return Number.isFinite(stock) && stock > 0 ? stock : Infinity;
+}
+
 function cartReducer(state, action) {
     switch (action.type) {
         case 'ADD_ITEM': {
+            const addQty = Math.max(1, Number(action.qty) || 1);
+            const cap = stockCap(action.product);
             const existing = state.items.find(i => i.id === action.product.id);
             if (existing) {
+                const nextQty = Math.min(existing.qty + addQty, cap);
                 return {
                     ...state,
                     items: state.items.map(i =>
-                        i.id === action.product.id ? { ...i, qty: i.qty + 1 } : i
+                        i.id === action.product.id ? { ...i, qty: nextQty } : i
                     ),
                 };
             }
-            return { ...state, items: [...state.items, { ...action.product, qty: 1 }] };
+            return { ...state, items: [...state.items, { ...action.product, qty: Math.min(addQty, cap) }] };
         }
         case 'REMOVE_ITEM':
             return { ...state, items: state.items.filter(i => i.id !== action.id) };
@@ -25,7 +35,7 @@ function cartReducer(state, action) {
             return {
                 ...state,
                 items: state.items.map(i =>
-                    i.id === action.id ? { ...i, qty: action.qty } : i
+                    i.id === action.id ? { ...i, qty: Math.min(action.qty, stockCap(i)) } : i
                 ),
             };
         }
@@ -60,8 +70,8 @@ export function CartProvider({ children }) {
     const totalItems = state.items.reduce((sum, i) => sum + i.qty, 0);
     const subtotal = state.items.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-    function addItem(product) {
-        dispatch({ type: 'ADD_ITEM', product });
+    function addItem(product, qty = 1) {
+        dispatch({ type: 'ADD_ITEM', product, qty });
     }
     function removeItem(id) {
         dispatch({ type: 'REMOVE_ITEM', id });

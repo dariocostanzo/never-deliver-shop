@@ -106,12 +106,24 @@ export default function OrderHistoryPage() {
                                     </div>
                                     {order.items?.map(item => (
                                         <div key={item.id} className="flex gap-3 items-start">
-                                            <img src={item.image} alt={item.title} className="w-16 h-16 object-contain bg-gray-50 rounded border" />
+                                            {item.isPrize ? (
+                                                <div className="w-16 h-16 flex items-center justify-center text-3xl bg-amber-50 rounded border border-amber-200">
+                                                    {item.emoji || '🎁'}
+                                                </div>
+                                            ) : (
+                                                <img src={item.image} alt={item.title} className="w-16 h-16 object-contain bg-gray-50 rounded border" />
+                                            )}
                                             <div className="flex-1 min-w-0">
-                                                <Link to={`/product/${item.id}`} className="text-sm font-medium text-blue-700 hover:underline line-clamp-2">
-                                                    {item.title}
-                                                </Link>
-                                                <p className="text-xs text-gray-600">Qty: {item.qty} · {formatCurrency(item.price * item.qty)}</p>
+                                                {item.isPrize ? (
+                                                    <p className="text-sm font-medium text-gray-900 line-clamp-2">🎁 {item.title}</p>
+                                                ) : (
+                                                    <Link to={`/product/${item.id}`} className="text-sm font-medium text-blue-700 hover:underline line-clamp-2">
+                                                        {item.title}
+                                                    </Link>
+                                                )}
+                                                <p className="text-xs text-gray-600">
+                                                    Qty: {item.qty} · {item.isPrize ? <span className="font-bold text-green-700">FREE</span> : formatCurrency(item.price * item.qty)}
+                                                </p>
                                             </div>
                                         </div>
                                     ))}

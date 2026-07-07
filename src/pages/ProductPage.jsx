@@ -4,9 +4,11 @@ import { useCart } from '../context/CartContext';
 import { useLocale } from '../context/LocaleContext';
 import { StarRating } from '../components/StarRating';
 import ProductCard from '../components/ProductCard';
+import InsaneCaptcha from '../components/InsaneCaptcha';
 import { ProductPageSkeleton } from '../components/PageSkeletons';
 import { fetchProductById, fetchRelatedProducts } from '../lib/catalogApi';
 import { getProductImageSrc, handleProductImageError } from '../lib/imageUtils';
+import { loadUserReviews, saveUserReview, deleteUserReview } from '../lib/reviewsStore';
 import { SALE_DISCOUNT_PERCENT } from '../lib/sale';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -41,6 +43,11 @@ export default function ProductPage() {
     const [btnAnim, setBtnAnim] = useState(false);
     const [added, setAdded] = useState(false);
     const [showReviews, setShowReviews] = useState(false);
+    const [userReviews, setUserReviews] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    const [showCaptcha, setShowCaptcha] = useState(false);
+    const [posted, setPosted] = useState(false);
+    const [form, setForm] = useState({ author: '', rating: 5, title: '', body: '' });
     const { addItem } = useCart();
     const { formatCurrency } = useLocale();
     const { t } = useLanguage();
@@ -49,6 +56,11 @@ export default function ProductPage() {
         setLoading(true);
         setAdded(false);
         setQty(1);
+        setUserReviews(loadUserReviews(id));
+        setShowForm(false);
+        setShowCaptcha(false);
+        setPosted(false);
+        setForm({ author: '', rating: 5, title: '', body: '' });
         fetchProductById(id)
             .then(data => {
                 setProduct(data);
@@ -61,12 +73,38 @@ export default function ProductPage() {
 
     const handleAdd = useCallback(() => {
         if (!product) return;
-        for (let i = 0; i < qty; i++) addItem(product);
+        addItem(product, qty);
         setBtnAnim(true);
         setAdded(true);
         setTimeout(() => setBtnAnim(false), 450);
         setTimeout(() => setAdded(false), 600);
     }, [addItem, product, qty]);
+
+    const handleReviewSubmit = useCallback((event) => {
+        event.preventDefault();
+        setShowCaptcha(true);
+    }, []);
+
+    const handleCaptchaSuccess = useCallback(() => {
+        const review = {
+            id: `${id}-user-${Date.now()}`,
+            author: form.author.trim() || 'Anonymous',
+            rating: Number(form.rating),
+            title: form.title.trim() || 'My review',
+            body: form.body.trim(),
+            date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+            mine: true,
+        };
+        setUserReviews(saveUserReview(id, review));
+        setShowCaptcha(false);
+        setShowForm(false);
+        setPosted(true);
+        setForm({ author: '', rating: 5, title: '', body: '' });
+    }, [form, id]);
+
+    const handleDeleteReview = useCallback((reviewId) => {
+        setUserReviews(deleteUserReview(id, reviewId));
+    }, [id]);
 
     if (loading) {
         return (
@@ -87,9 +125,16 @@ export default function ProductPage() {
     }
 
     const isLowStock = product.stock > 0 && product.stock <= 5;
+    const isOutOfStock = product.stock <= 0;
+    const maxQty = Math.min(10, product.stock > 0 ? product.stock : 10);
+    const qtyOptions = Array.from({ length: maxQty }, (_, i) => i + 1);
     const fakeReviews = buildFakeReviews(product);
+    const allReviews = [...userReviews, ...fakeReviews];
+    const reviewCount = (product.rating?.count ?? 0) + userReviews.length;
     const onSale = product.onSale && product.originalPrice > product.price;
     const savings = onSale ? product.originalPrice - product.price : 0;
+    const discountPercent = product.discountPercent ?? SALE_DISCOUNT_PERCENT;
+    const isLightningDeal = product.isLightningDeal && onSale;
 
     return (
         <div className="min-h-screen bg-[#eaeded]">
@@ -122,7 +167,7 @@ export default function ProductPage() {
                         <div className="flex items-center gap-3">
                             <StarRating
                                 rating={product.rating?.rate ?? 4}
-                                count={product.rating?.count}
+                                count={reviewCount}
                                 onReviewClick={() => setShowReviews(true)}
                             />
                             <span className="text-xs text-gray-600">|</span>
@@ -131,8 +176,8 @@ export default function ProductPage() {
 
                         <div className="border-t pt-3">
                             {onSale && (
-                                <span className="inline-block mb-1 bg-[#c7511f] text-white text-xs font-extrabold px-2 py-0.5 rounded-sm">
-                                    -{SALE_DISCOUNT_PERCENT}% {t('flashSale')}
+                                <span className={`inline-block mb-1 text-white text-xs font-extrabold px-2 py-0.5 rounded-sm ${isLightningDeal ? 'bg-[#b12704]' : 'bg-[#c7511f]'}`}>
+                                    {isLightningDeal ? `⚡ ${t('lightningDeal')}` : t('flashSale')} · -{discountPercent}%
                                 </span>
                             )}
                             <div className="flex items-baseline gap-2 flex-wrap">
@@ -143,21 +188,27 @@ export default function ProductPage() {
                             </div>
                             {onSale && (
                                 <p className="text-sm font-semibold text-green-700 mt-1">
-                                    {t('saveLabel')} {formatCurrency(savings)} ({SALE_DISCOUNT_PERCENT}% {t('off')})
+                                    {t('saveLabel')} {formatCurrency(savings)} ({discountPercent}% {t('off')})
                                 </p>
                             )}
                         </div>
 
                         <div className="flex items-center gap-2 text-sm">
                             <span className="text-[#0077b8] font-extrabold text-base">Plus</span>
-                            <span className="text-gray-700">FREE delivery <strong>Tomorrow</strong></span>
+                            {product.shippingNote ? (
+                                <span className="text-gray-700">{product.shippingNote}</span>
+                            ) : (
+                                <span className="text-gray-700">FREE delivery <strong>Tomorrow</strong></span>
+                            )}
                         </div>
 
                         {/* Stock */}
-                        {isLowStock ? (
-                            <p className="text-red-600 font-semibold text-sm">Only 3 left in stock — order soon.</p>
+                        {isOutOfStock ? (
+                            <p className="text-red-600 font-semibold text-sm">Out of stock</p>
+                        ) : isLowStock ? (
+                            <p className="text-red-600 font-semibold text-sm">Only {product.stock} left in stock, order soon.</p>
                         ) : (
-                            <p className="text-green-700 font-semibold text-sm">In Stock</p>
+                            <p className="text-green-700 font-semibold text-sm">In Stock ({product.stock} available)</p>
                         )}
 
                         {/* Qty + Add */}
@@ -165,21 +216,23 @@ export default function ProductPage() {
                             <select
                                 value={qty}
                                 onChange={e => setQty(Number(e.target.value))}
-                                className="border border-gray-400 rounded px-2 py-1.5 text-sm"
+                                disabled={isOutOfStock}
+                                className="border border-gray-400 rounded px-2 py-1.5 text-sm disabled:opacity-50"
                             >
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                                {qtyOptions.map(n => (
                                     <option key={n} value={n}>Qty: {n}</option>
                                 ))}
                             </select>
 
                             <button
                                 onClick={handleAdd}
-                                className={`flex-1 py-2.5 px-6 rounded-full font-bold text-sm transition-all
+                                disabled={isOutOfStock}
+                                className={`flex-1 py-2.5 px-6 rounded-full font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed
                   ${added ? 'bg-green-500 text-white' : 'bg-[#ff9900] hover:bg-[#e88b00] text-[#131921]'}
                   ${btnAnim ? 'animate-btn-bounce' : ''}
                 `}
                             >
-                                {added ? '✓ Added to Cart!' : 'Add to Cart'}
+                                {isOutOfStock ? 'Out of Stock' : added ? '✓ Added to Cart!' : 'Add to Cart'}
                             </button>
                         </div>
 
@@ -216,22 +269,123 @@ export default function ProductPage() {
                                 </button>
                             </div>
                             <div className="p-4 space-y-4 overflow-y-auto max-h-[70vh]">
-                                {fakeReviews.map(review => (
-                                    <article key={review.id} className="border border-gray-300 rounded-lg p-3">
+                                {posted && (
+                                    <p className="text-sm font-semibold text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2" role="status">
+                                        ✓ {t('reviewPosted')}
+                                    </p>
+                                )}
+
+                                {!showForm ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowForm(true); setPosted(false); }}
+                                        className="w-full py-2 rounded-full border border-gray-400 hover:bg-gray-50 text-sm font-bold text-gray-900"
+                                    >
+                                        {t('writeReview')}
+                                    </button>
+                                ) : (
+                                    <form onSubmit={handleReviewSubmit} className="border border-gray-300 rounded-lg p-3 space-y-3 bg-gray-50">
+                                        <div>
+                                            <label htmlFor="rv-name" className="block text-xs font-semibold text-gray-700 mb-1">{t('yourName')}</label>
+                                            <input
+                                                id="rv-name"
+                                                type="text"
+                                                value={form.author}
+                                                onChange={e => setForm(f => ({ ...f, author: e.target.value }))}
+                                                className="w-full border border-gray-400 rounded px-2 py-1.5 text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="rv-rating" className="block text-xs font-semibold text-gray-700 mb-1">{t('yourRating')}</label>
+                                            <select
+                                                id="rv-rating"
+                                                value={form.rating}
+                                                onChange={e => setForm(f => ({ ...f, rating: Number(e.target.value) }))}
+                                                className="w-full border border-gray-400 rounded px-2 py-1.5 text-sm"
+                                            >
+                                                {[5, 4, 3, 2, 1].map(n => (
+                                                    <option key={n} value={n}>{'★'.repeat(n)} ({n})</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label htmlFor="rv-title" className="block text-xs font-semibold text-gray-700 mb-1">{t('reviewTitle')}</label>
+                                            <input
+                                                id="rv-title"
+                                                type="text"
+                                                value={form.title}
+                                                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                                                className="w-full border border-gray-400 rounded px-2 py-1.5 text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="rv-body" className="block text-xs font-semibold text-gray-700 mb-1">{t('reviewBody')}</label>
+                                            <textarea
+                                                id="rv-body"
+                                                required
+                                                rows={3}
+                                                value={form.body}
+                                                onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
+                                                className="w-full border border-gray-400 rounded px-2 py-1.5 text-sm resize-y"
+                                            />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="submit"
+                                                className="flex-1 py-2 rounded-full bg-[#ff9900] hover:bg-[#e88b00] text-[#131921] font-bold text-sm"
+                                            >
+                                                {t('submitReview')}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowForm(false)}
+                                                className="py-2 px-4 rounded-full border border-gray-400 hover:bg-gray-100 text-sm font-bold text-gray-800"
+                                            >
+                                                {t('cancel')}
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+
+                                {allReviews.map(review => (
+                                    <article key={review.id} className={`border rounded-lg p-3 ${review.mine ? 'border-[#ff9900] bg-orange-50' : 'border-gray-300'}`}>
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
-                                                <p className="text-sm font-semibold text-gray-900">{review.author}</p>
+                                                <p className="text-sm font-semibold text-gray-900">
+                                                    {review.author}
+                                                    {review.mine && (
+                                                        <span className="ml-2 text-[10px] uppercase tracking-wide bg-[#ff9900] text-[#131921] font-bold px-1.5 py-0.5 rounded">
+                                                            {t('yourReviewBadge')}
+                                                        </span>
+                                                    )}
+                                                </p>
                                                 <p className="text-xs text-gray-700">{review.date}</p>
                                             </div>
                                             <span className="text-sm font-semibold text-[#c77800]">{review.rating}.0 ★</span>
                                         </div>
                                         <h4 className="text-sm font-bold text-gray-900 mt-2">{review.title}</h4>
                                         <p className="text-sm text-gray-800 mt-1">{review.body}</p>
+                                        {review.mine && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDeleteReview(review.id)}
+                                                className="mt-2 text-xs font-semibold text-red-700 hover:underline"
+                                            >
+                                                {t('deleteReview')}
+                                            </button>
+                                        )}
                                     </article>
                                 ))}
                             </div>
                         </div>
                     </div>
+                )}
+
+                {showCaptcha && (
+                    <InsaneCaptcha
+                        onSuccess={handleCaptchaSuccess}
+                        onCancel={() => setShowCaptcha(false)}
+                    />
                 )}
             </div>
         </div>

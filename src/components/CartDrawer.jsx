@@ -60,21 +60,41 @@ export default function CartDrawer() {
                     ) : (
                         items.map(item => (
                             <div key={item.id} className="flex gap-3">
-                                <img
-                                    src={item.image}
-                                    alt={item.title}
-                                    className="w-16 h-16 object-contain bg-gray-50 rounded border"
-                                />
+                                {item.isPrize ? (
+                                    <div className="w-16 h-16 flex items-center justify-center text-3xl bg-amber-50 rounded border border-amber-200">
+                                        {item.emoji || '🎁'}
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={item.image}
+                                        alt={item.title}
+                                        className="w-16 h-16 object-contain bg-gray-50 rounded border"
+                                    />
+                                )}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 line-clamp-2">{item.title}</p>
-                                    <p className="text-sm font-bold text-gray-900 mt-0.5">
-                                        {formatCurrency(item.price * item.qty)}
-                                        {Number(item.originalPrice) > item.price && (
-                                            <span className="ml-1.5 text-xs font-normal text-gray-500 line-through">
-                                                {formatCurrency(item.originalPrice * item.qty)}
-                                            </span>
-                                        )}
+                                    <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                                        {item.isPrize && <span className="mr-1">🎁</span>}
+                                        {item.title}
                                     </p>
+                                    {item.isPrize ? (
+                                        <p className="text-sm font-bold text-green-700 mt-0.5">
+                                            FREE
+                                            {Number(item.originalPrice) > 0 && (
+                                                <span className="ml-1.5 text-xs font-normal text-gray-500 line-through">
+                                                    {formatCurrency(item.originalPrice * item.qty)}
+                                                </span>
+                                            )}
+                                        </p>
+                                    ) : (
+                                        <p className="text-sm font-bold text-gray-900 mt-0.5">
+                                            {formatCurrency(item.price * item.qty)}
+                                            {Number(item.originalPrice) > item.price && (
+                                                <span className="ml-1.5 text-xs font-normal text-gray-500 line-through">
+                                                    {formatCurrency(item.originalPrice * item.qty)}
+                                                </span>
+                                            )}
+                                        </p>
+                                    )}
                                     <div className="flex items-center gap-2 mt-1">
                                         <button
                                             onClick={() => updateQty(item.id, item.qty - 1)}
@@ -83,13 +103,17 @@ export default function CartDrawer() {
                                         <span className="text-sm w-5 text-center">{item.qty}</span>
                                         <button
                                             onClick={() => updateQty(item.id, item.qty + 1)}
-                                            className="w-6 h-6 border border-gray-300 rounded text-sm flex items-center justify-center hover:bg-gray-100"
+                                            disabled={!item.isPrize && Number(item.stock) > 0 && item.qty >= item.stock}
+                                            className="w-6 h-6 border border-gray-300 rounded text-sm flex items-center justify-center hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                                         >+</button>
                                         <button
                                             onClick={() => removeItem(item.id)}
                                             className="text-xs text-red-700 hover:underline ml-1"
                                         >Remove</button>
                                     </div>
+                                    {!item.isPrize && Number(item.stock) > 0 && item.qty >= item.stock && (
+                                        <p className="text-[11px] text-gray-500 mt-1">Max stock reached ({item.stock})</p>
+                                    )}
                                 </div>
                             </div>
                         ))

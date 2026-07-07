@@ -221,18 +221,11 @@ export default function Header({ onSearch, searchValue }) {
                             <div className="font-bold">{t('orders')}</div>
                         </Link>
 
-                        <a
-                            href="https://ko-fi.com/dc135837"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={t('tipTitle')}
-                            className="flex items-center gap-1.5 bg-[#ff9900] text-[#131921] font-bold rounded-full px-3 py-1.5 hover:bg-[#e88b00] transition-colors focus-visible:ring-2 focus-visible:ring-white"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                            </svg>
-                            {t('tip')}
-                        </a>
+                        <Link to="/games" className="hover:text-[#ff9900] transition-colors leading-tight">
+                            <div className="text-xs text-gray-200">{t('playAndWin')}</div>
+                            <div className="font-bold">🎁 {t('winFree')}</div>
+                        </Link>
+
                     </nav>
 
                     {/* Cart button */}
@@ -303,20 +296,14 @@ export default function Header({ onSearch, searchValue }) {
                                 ))}
                             </select>
                         </label>
-                        <a
-                            href="https://ko-fi.com/dc135837"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title={t('tipTitle')}
-                            className="ml-auto flex items-center gap-1 bg-[#ff9900] text-[#131921] font-bold rounded-full px-2.5 py-1 hover:bg-[#e88b00] transition-colors focus-visible:ring-2 focus-visible:ring-white"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                            </svg>
-                            {t('tip')}
-                        </a>
                     </div>
                     <div className="flex gap-4 text-sm max-w-screen-xl mx-auto whitespace-nowrap">
+                        <Link
+                            to="/games"
+                            className="text-[#ff9900] font-bold hover:text-white transition-colors py-1 focus-visible:ring-2 focus-visible:ring-[#ff9900] rounded"
+                        >
+                            🎁 {t('winFree')}
+                        </Link>
                         {["All", "beauty", "fragrances", "smartphones", "furniture", "groceries"].map(cat => (
                             <Link
                                 key={cat}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import { HomeGridSkeleton } from '../components/PageSkeletons';
+import AboutSection from '../components/AboutSection';
 import { fetchCatalogPage } from '../lib/catalogApi';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -83,6 +84,9 @@ export default function HomePage({ searchValue }) {
     const pageStart = (safePage - 1) * pageSize;
     const pagedProducts = sorted.slice(pageStart, pageStart + pageSize);
 
+    const lightningDeals = products.filter(p => p.isLightningDeal).slice(0, 12);
+    const needohProducts = products.filter(p => String(p.category).toLowerCase() === 'needohs');
+
     useEffect(() => {
         if (safePage === page) return;
         const nextParams = new URLSearchParams(searchParams);
@@ -93,6 +97,12 @@ export default function HomePage({ searchValue }) {
         }
         setSearchParams(nextParams, { replace: true });
     }, [page, safePage, searchParams, setSearchParams]);
+
+    // Scroll back to the top of the listing whenever the page changes, so mobile
+    // users aren't left stranded at the bottom after paginating.
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [safePage]);
 
     function updateQueryParam(key, value, { resetPage = false } = {}) {
         const nextParams = new URLSearchParams(searchParams);
@@ -180,6 +190,47 @@ export default function HomePage({ searchValue }) {
 
                 {!loading && !error && (
                     <>
+                        {!searchValue && lightningDeals.length > 0 && (
+                            <section className="mb-6 bg-white rounded-lg border border-[#ffd8a8] shadow-sm p-3 sm:p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h2 className="text-base sm:text-lg font-extrabold text-gray-900 flex items-center gap-1.5">
+                                        <span className="text-[#b12704]">⚡</span> {t('lightningDeals')}
+                                    </h2>
+                                    <span className="text-xs font-semibold text-[#b12704] bg-[#fff4ed] px-2 py-1 rounded-full">
+                                        {t('lightningDealsHint')}
+                                    </span>
+                                </div>
+                                <div className="flex items-stretch gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+                                    {lightningDeals.map(product => (
+                                        <div key={product.id} className="shrink-0 w-40 sm:w-44 flex">
+                                            <ProductCard product={product} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                        {!searchValue && categoryParam === 'All' && needohProducts.length > 0 && (
+                            <section className="mb-6 bg-white rounded-lg border border-purple-200 shadow-sm p-3 sm:p-4">
+                                <div className="flex items-center justify-between gap-2 mb-3">
+                                    <div className="min-w-0">
+                                        <h2 className="text-base sm:text-lg font-extrabold text-gray-900 flex items-center gap-1.5">
+                                            <span aria-hidden="true">🫠</span> {t('needohsTitle')}
+                                        </h2>
+                                        <p className="text-xs text-gray-700 mt-0.5">{t('needohsSubtitle')}</p>
+                                    </div>
+                                    <span className="shrink-0 text-xs font-semibold text-purple-800 bg-purple-50 px-2 py-1 rounded-full">
+                                        {t('needohsShipping')}
+                                    </span>
+                                </div>
+                                <div className="flex items-stretch gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+                                    {needohProducts.map(product => (
+                                        <div key={product.id} className="shrink-0 w-40 sm:w-44 flex">
+                                            <ProductCard product={product} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                             <p className="text-sm text-gray-800" aria-live="polite">
                                 {sorted.length} {sorted.length !== 1 ? t('results') : t('result')}{searchValue ? ` for "${searchValue}"` : ''}
@@ -266,6 +317,8 @@ export default function HomePage({ searchValue }) {
                         )}
                     </>
                 )}
+
+                <AboutSection />
             </div>
         </div>
     );
